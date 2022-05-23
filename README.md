@@ -32,3 +32,9 @@ scripts to create and evaluate a vertical coordinate for ICON
    10. dz: 73.55
    
    Levels in lowest 500m above ground: 9
+
+
+
+``python evaluate_hhl.py --create_plots``
+
+![image](https://user-images.githubusercontent.com/28092474/169847132-3e5592c6-688a-4c15-b05e-e0c4b1dd429f.png)
