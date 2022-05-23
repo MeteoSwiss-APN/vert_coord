@@ -123,8 +123,8 @@ def info_dz(hsurf, poi, dz):
 
     # HSURF
     min_hsurf, max_hsurf = get_min_max(hsurf)
-    print(f"Lowest point in domain: {min_hsurf:.2f}")
-    print(f"Highest point in domain: {max_hsurf:.2f}")
+    print(f"Lowest point in domain: {min_hsurf:.2f} m asl.")
+    print(f"Highest point in domain: {max_hsurf:.2f} m asl.")
 
     for location in poi:
         p = poi[location]
@@ -132,10 +132,15 @@ def info_dz(hsurf, poi, dz):
         print(f"   Real elevation: {int(p.h_real)} m asl.")
         print(f"   Model elevation: {int(hsurf[p.ind])} m asl.")
         for i in range(1, 11):
-            print(f"   {i}. dz: {dz[-i,p.ind]:.2f}")
+            print(f"   {i}. dz: {dz[-i,p.ind]:.2f} m")
         nl_500 = n_sum_up_to(dz[::-1, p.ind], 500)
-        print(f"   Levels in lowest 500m above ground: {nl_500}")
+        print(f"   Levels in lowest 500 m above ground: {nl_500}")
 
+    # lowest level
+    dz_low = dz[-1, :]
+    print(f"\nLowest level:")
+    print(f"  - maximum thickness: {max(dz_low):.2f}m")
+    print(f"  - minimum thickness: {min(dz_low):.2f}m")
     set_trace()
     # max_dz_neighbours(hsurf)
 
