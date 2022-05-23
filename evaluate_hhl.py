@@ -1,3 +1,5 @@
+from turtle import color
+from matplotlib import markers
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,6 +7,7 @@ import psyplot.project as psy
 import click
 from ipdb import set_trace
 import sys
+from pathlib import Path
 
 
 def get_min_max(arr):
@@ -129,7 +132,7 @@ def info_dz(hsurf, poi, dz):
         print(f"   Real elevation: {int(p.h_real)} m asl.")
         print(f"   Model elevation: {int(hsurf[p.ind])} m asl.")
         for i in range(1, 11):
-            print(f"   {i}. dz: {dz[-i,p.ind]}")
+            print(f"   {i}. dz: {dz[-i,p.ind]:.2f}")
         nl_500 = n_sum_up_to(dz[::-1, p.ind], 500)
         print(f"   Levels in lowest 500m above ground: {nl_500}")
 
@@ -137,6 +140,83 @@ def info_dz(hsurf, poi, dz):
     # max_dz_neighbours(hsurf)
 
     print(f"")
+
+
+def plot_dz(dz, poi, model, exp, out_dir):
+    """Plot dz vs altitude.
+
+    Args:
+        dz (np.array): level thickness
+        poi (pd.Dataframe): points of interest
+        model (str): model name
+        exp (str): identifier for specific configuration
+        out_dir (str): output directory
+
+    """
+    # plot "nominal" dz, i.e. at location of savona
+    ii = poi["sav"].ind
+    dz_nominal = dz[::-1, ii]
+    n_lev = len(dz_nominal)
+
+    # cut into lower and upper region
+    cut = 22
+    dz_lower = dz_nominal[:cut]
+    dz_upper = dz_nominal[(cut - 1) :]
+
+    ### dz vs level-index ###
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 6))
+
+    # plot all levels
+    ax1.plot(np.arange(1, cut + 1), dz_lower, marker="o", color="purple")
+    ax1.plot(np.arange(cut, n_lev + 1), dz_upper, marker="o", color="yellowgreen")
+    ax1.set_xlabel("# Level")
+    ax1.set_ylabel("dz [m]")
+    ax1.set_title("All levels")
+    ax1.set_ylim(0, 1200)
+    ax1.set_xlim(0, n_lev)
+
+    # plot only lower atmosphere
+    ax2.plot(np.arange(1, cut + 1), dz_lower, marker="o", color="purple")
+    ax2.set_xlabel("# Level")
+    ax2.set_title("Lower atmosphere")
+    ax2.set_ylim(min(dz_lower) - 2, max(dz_lower) + 5)
+    ax2.set_xlim(0, cut)
+
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    out_name = Path(out_dir, f"dz_vs_level_{model}_{exp}.png")
+    plt.tight_layout()
+    plt.savefig(out_name)
+    print(f"Saved as: {out_name}")
+
+    plt.clf()
+
+    ### altitude vs dz ###
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 8))
+
+    # calculate cumulative sum of dz
+    dz_cumsum = np.cumsum(dz_nominal)
+
+    # plot all levels
+    ax1.plot(dz_lower, dz_cumsum[:cut], marker="o", color="purple")
+    ax1.plot(dz_upper, dz_cumsum[(cut - 1) :], marker="o", color="yellowgreen")
+    ax1.set_xlabel("dz [m]")
+    ax1.set_ylabel("Altitude [m asl]")
+    ax1.set_title("All levels")
+    ax1.set_xlim(0, 1200)
+    ax1.set_ylim(0, 20500)
+
+    # plot only lower atmosphere
+    ax2.plot(dz_lower, dz_cumsum[:cut], marker="o", color="purple")
+    ax2.set_xlabel("dz [m]")
+    ax2.set_title("Lower atmosphere")
+    ax2.set_xlim(min(dz_lower) - 2, max(dz_lower) + 2)
+    ax2.set_ylim(0, dz_cumsum[(cut - 1)])
+
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    out_name = Path(out_dir, f"altitude_vs_dz_{model}_{exp}.png")
+    plt.tight_layout()
+    plt.savefig(out_name)
+    print(f"Saved as: {out_name}")
 
 
 @click.command()
@@ -148,8 +228,14 @@ def info_dz(hsurf, poi, dz):
 )
 @click.option(
     "--model",
-    default="icon",
+    default="icon-1",
     help="originating model",
+    type=str,
+)
+@click.option(
+    "--config",
+    default="ref",
+    help="specific configuration",
     type=str,
 )
 @click.option(
@@ -158,28 +244,28 @@ def info_dz(hsurf, poi, dz):
     default=False,
 )
 @click.option(
-    "--plot_dz",
+    "--create_plots",
     is_flag=True,
     default=False,
 )
 @click.option(
     "--out_dir",
-    default="/scratch/swester/vert_coord/",
+    default="/scratch/swester/vert_coord/figures",
     type=str,
 )
-def evaluate_hhl(file, model, print_info, plot_dz, out_dir):
+def evaluate_hhl(file, model, config, print_info, create_plots, out_dir):
 
     print(f"Evaluating {file}")
 
     # load file, retrieve relevant variables
     ds = psy.open_dataset(file).squeeze()
 
-    if model == "icon":
+    if "icon" in model:
         hhl = ds.HEIGHT.values
         lats = ds.clat_1.values
         lons = ds.clon_1.values
 
-    elif model == "cosmo":
+    elif "cosmo" in model:
         hhl_3d = ds.HEIGHT.values
         s1 = hhl_3d.shape[1]
         s2 = hhl_3d.shape[2]
@@ -200,6 +286,9 @@ def evaluate_hhl(file, model, print_info, plot_dz, out_dir):
 
     if print_info:
         info_dz(hsurf, poi, dz)
+
+    if create_plots:
+        plot_dz(dz, poi, model, config, out_dir)
 
 
 if __name__ == "__main__":
