@@ -4,10 +4,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import psyplot.project as psy
+import iconarray
 import click
 from ipdb import set_trace
 import sys
 from pathlib import Path
+import os
+
+# example commands:
+# python evaluate_hhl.py --print_info
+# python evaluate_hhl.py --print_info --model cosmo-1 --file /store/s83/swester/grids/const_modinterim.nc
 
 
 def get_min_max(arr):
@@ -61,7 +67,7 @@ def get_poi(lats, lons):
 
     """
     poi = pd.DataFrame(
-        columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav"],
+        columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic"],
         index=["long_name", "ind", "h_real"],
     )
 
@@ -72,6 +78,8 @@ def get_poi(lats, lons):
     ind_visp = ind_from_latlon(lats, lons, 46.29861, 7.88004)
     ind_ulr = ind_from_latlon(lats, lons, 46.50568, 8.30610)
     ind_sav = ind_from_latlon(lats, lons, 44.276917, 8.546750)
+    ind_duf = ind_from_latlon(lats, lons, 45.93692, 7.86675)
+    ind_cic = ind_from_latlon(lats, lons, 45.72350, 8.61444)
 
     poi["mtblanc"].long_name = "Mt Blanc"
     poi["zrh"].long_name = "Zürich"
@@ -79,6 +87,8 @@ def get_poi(lats, lons):
     poi["visp"].long_name = "Visp"
     poi["ulr"].long_name = "Ulrichen"
     poi["sav"].long_name = "Savona"
+    poi["duf"].long_name = "Dufourspitze"
+    poi["cic"].long_name = "Cicognola"
 
     poi["mtblanc"].ind = ind_mtblanc
     poi["zrh"].ind = ind_zrh
@@ -86,6 +96,8 @@ def get_poi(lats, lons):
     poi["visp"].ind = ind_visp
     poi["ulr"].ind = ind_ulr
     poi["sav"].ind = ind_sav
+    poi["duf"].ind = ind_duf
+    poi["cic"].ind = ind_cic
 
     poi["mtblanc"].h_real = 4808.0
     poi["zrh"].h_real = 422.0
@@ -93,6 +105,8 @@ def get_poi(lats, lons):
     poi["visp"].h_real = 646.0
     poi["ulr"].h_real = 1345.0
     poi["sav"].h_real = 0.0
+    poi["duf"].h_real = 4634.0
+    poi["cic"].h_real = 197.0
 
     return poi
 
@@ -112,6 +126,49 @@ def n_sum_up_to(dz, top):
     return np.sum(cumsum < top)
 
 
+def info_minmax(hsurf):
+    """Print information elevation of heighest and lowest grid cell.
+
+    Args:
+        hsurf (2d array): surface height
+    """
+
+    # HSURF
+    min_hsurf, max_hsurf = get_min_max(hsurf)
+    print(f"Lowest point in domain: {min_hsurf:.2f} m asl.")
+    print(f"Highest point in domain: {max_hsurf:.2f} m asl.")
+
+    return
+
+
+def info_hhl(hhl, poi):
+    """Print information about height of half levels to screen.
+
+    Args:
+        hhl (3d array): height of half levels (including surface)
+        poi (pd dataframe): points of interest
+    """
+
+    # print info on highest and lowest elevation grid cell
+    info_minmax(hhl[-1, :])
+
+    # Number of levels
+    nlev = hhl.shape[0]
+
+    for location in poi:
+        p = poi[location]
+        print(f"\n{p.long_name}:")
+        print(f"   Real elevation: {int(p.h_real)} m asl.")
+        print(f"   Model elevation: {int(hhl[-1, p.ind])} m asl.")
+        for i in range(1, 12):
+            print(f"   {i}. level: {hhl[-i,p.ind]:.2f} m asl")
+        print(f"   ...")
+        for i in range(2, -1, -1):
+            print(f"   {nlev-i}. level: {hhl[i,p.ind]:.2f} m asl")
+
+    return
+
+
 def info_dz(hsurf, poi, dz):
     """Print information about level distribution to screen.
 
@@ -121,10 +178,8 @@ def info_dz(hsurf, poi, dz):
         dz (3d array): level thickness
     """
 
-    # HSURF
-    min_hsurf, max_hsurf = get_min_max(hsurf)
-    print(f"Lowest point in domain: {min_hsurf:.2f} m asl.")
-    print(f"Highest point in domain: {max_hsurf:.2f} m asl.")
+    # print info on highest and lowest elevation grid cell
+    info_minmax(hsurf)
 
     for location in poi:
         p = poi[location]
@@ -145,6 +200,48 @@ def info_dz(hsurf, poi, dz):
     # max_dz_neighbours(hsurf)
 
     print(f"")
+
+
+def mapplot_coord_surf(file, grid_file, lev):
+
+    print(f"Plotting surface elevation of {file}.")
+    print(f"Corresponding grid file: {grid_file}.")
+
+    ds = iconarray.combine_grid_information(file, grid_file)
+
+    # get nlev, find name
+    try:
+        nlev = ds.HHL.values.shape[0]
+        name_height = "HHL"
+    except AttributeError:
+        nlev = ds.HEIGHT.values.shape[0]
+        name_height = "HEIGHT"
+    zz = nlev - lev
+
+    surf_map = ds.psy.plot.mapplot(
+        name=name_height,
+        xgrid=None,
+        ygrid=None,
+        # bounds=np.arange(0, 101, 5),
+        # norm=norm,
+        cticksize="small",
+        # cmap=cmap,
+        borders=True,
+        lakes=True,
+        rivers=True,
+        projection="robin",
+        # map_extent=[5.5, 11.0, 45.5, 48.0],
+        title=f"Elevation of {lev}. coordinate surface",
+        clabel="m asl",
+        z=zz,  # specify specific level
+    )
+
+    user = os.getlogin()
+    out_dir = Path(f"/scratch/{user}/vert_coord/figures")
+    out_dir.mkdir(exist_ok=True)
+    out_name = Path(out_dir, f"altitude_{lev}_coordinate_surface.png")
+    plt.savefig(out_name)
+    print(f"Saved as: {out_name}")
 
 
 def plot_dz(dz, poi, model, exp, out_dir):
@@ -232,6 +329,12 @@ def plot_dz(dz, poi, model, exp, out_dir):
     type=str,
 )
 @click.option(
+    "--grid_file",
+    default="/store/s83/tsm/ICON_INPUT/icon-1e_dev/ICON-1E_DOM01.nc",
+    help="Netcdf file containing grid information.",
+    type=str,
+)
+@click.option(
     "--model",
     default="icon-1",
     help="originating model",
@@ -244,9 +347,30 @@ def plot_dz(dz, poi, model, exp, out_dir):
     type=str,
 )
 @click.option(
-    "--print_info",
+    "--print_dz",
     is_flag=True,
     default=False,
+)
+@click.option(
+    "--print_hhl",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--plot_surf",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--lev",
+    type=int,
+    default=1,
+)
+@click.option(
+    "--loc",
+    type=str,
+    multiple=True,
+    default=["all"],
 )
 @click.option(
     "--create_plots",
@@ -258,7 +382,19 @@ def plot_dz(dz, poi, model, exp, out_dir):
     default="/scratch/swester/vert_coord/figures",
     type=str,
 )
-def evaluate_hhl(file, model, config, print_info, create_plots, out_dir):
+def evaluate_hhl(
+    file,
+    grid_file,
+    model,
+    config,
+    print_dz,
+    print_hhl,
+    plot_surf,
+    lev,
+    loc,
+    create_plots,
+    out_dir,
+):
 
     print(f"Evaluating {file}")
 
@@ -266,9 +402,18 @@ def evaluate_hhl(file, model, config, print_info, create_plots, out_dir):
     ds = psy.open_dataset(file).squeeze()
 
     if "icon" in model:
-        hhl = ds.HEIGHT.values
-        lats = ds.clat_1.values
-        lons = ds.clon_1.values
+        try:
+            hhl = ds.HEIGHT.values
+            lats = ds.clat_1.values
+            lons = ds.clon_1.values
+        except AttributeError:
+            hhl = ds.HHL.values
+            lats = ds.clat.values
+            lons = ds.clon.values
+
+    if max(lats) < 2:
+        lats = np.rad2deg(lats)
+        lons = np.rad2deg(lons)
 
     elif "cosmo" in model:
         hhl_3d = ds.HEIGHT.values
@@ -287,10 +432,23 @@ def evaluate_hhl(file, model, config, print_info, create_plots, out_dir):
     hfl = hhl[1:, :] + dz[:, :] / 2
 
     # load points of interest
-    poi = get_poi(lats, lons)
+    all_poi = get_poi(lats, lons)
+    if loc[0] == "all":
+        poi = all_poi
+    else:
+        poi = all_poi[list(loc)]
 
-    if print_info:
+    if print_dz:
         info_dz(hsurf, poi, dz)
+
+    if print_hhl:
+        info_hhl(hhl, poi)
+
+    if plot_surf:
+        if "icon" in model:
+            mapplot_coord_surf(file, grid_file, poi, lev)
+        else:
+            print(f"No mapplot available for {model}.")
 
     if create_plots:
         plot_dz(dz, poi, model, config, out_dir)
