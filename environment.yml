@@ -1,0 +1,17 @@
+name: vert_coord
+dependencies:
+  - python=3.10
+  - pip
+  - git
+  - numpy
+  - matplotlib
+  - xarray
+  - scipy
+  - psyplot
+  - psy-maps
+  - ipython
+  - ipdb
+  - click
+  - cartopy
+  - pip:
+    - git+https://github.com/C2SM/iconarray@v0.1.22#egg=iconarray
