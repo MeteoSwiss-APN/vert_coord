@@ -109,19 +109,19 @@ def info_dz(hsurf, poi, dz, lev):
     print(f"\nLowest level:")
     print(f"  - maximum thickness: {max(dz_low):.2f}m")
     print(f"  - minimum thickness: {min(dz_low):.2f}m")
-    # max_dz_neighbours(hsurf)
-
     print(f"")
 
 
-def info_max_dzdc(hhl, grid_file, poi, lev, verify=False):
+def info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify=False):
     """Print information about maximum z-difference between cells.
 
     Args:
-        hhl (3d np.array): height of half levels
-        grid_file (str): path to grid file
-        poi (pd.DataFrame): points of interest
-        lev (int): N of level (upwards)
+        hhl (2d np.array):      height of half levels
+        grid_file (str):        path to grid file
+        poi (pd.DataFrame):     points of interest
+        lev (int):              N of level (upwards)
+        lats (1d np.array):     latitude
+        lons (1d np.array):     longitude
     """
 
     # load grid file
@@ -200,16 +200,20 @@ def info_max_dzdc(hhl, grid_file, poi, lev, verify=False):
         print(f"    {dz_n3[ii]}")
 
     # finally, determine maximum dz between adjacent cells
-    max_dzdc = np.maximum.reduce([dz_n1, dz_n2, dz_n3])
+    dzdc = np.maximum.reduce([dz_n1, dz_n2, dz_n3])
+    max_dzdc = np.max(dzdc)
+    max_ii = np.where(dzdc == max_dzdc)[0][0]
 
     if verify:
         print(f"--- maximum dz from cell {ii} to neighbours:")
         print(f"    {max_dzdc[ii]}")
 
-    print("\n*********************")
+    print("\n***********************************************************")
     print(f"--- Maximum dz between 2 adjacent grid cells on level {lev}:")
-    print(f"    {np.max(max_dzdc):.2f}")
-    print("*********************")
+    print(f"    {max_dzdc:.2f}")
+    print(f"--- location:")
+    print(f"    {lats[max_ii]:.3f}, {lons[max_ii]:.3f}")
+    print("\n***********************************************************")
 
 
 def mapplot_coord_surf(file, grid_file, lev):
@@ -503,7 +507,7 @@ def evaluate_hhl(
             sys.exit()
 
         print("Printing maximum elevation difference...\n")
-        info_max_dzdc(hhl, grid_file, poi, lev, verify)
+        info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify)
 
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
