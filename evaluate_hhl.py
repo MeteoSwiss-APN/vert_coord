@@ -3,6 +3,7 @@ from turtle import color
 from matplotlib import markers
 import numpy as np
 import pandas as pd
+import xarray as xr
 import matplotlib.pyplot as plt
 import psyplot.project as psy
 import iconarray
@@ -19,20 +20,21 @@ from utils import get_poi
 from utils import n_sum_up_to
 
 # example commands:
-# 
+#
 # COSMO-1:
 # python evaluate_hhl.py --print_info --model cosmo-1
 #   --file /store/s83/swester/grids/const_modinterim.nc
 #
 # SLEVE in ICON:
-# python evaluate_hhl.py --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc
-#   --model icon --print_hhl --lev 35 --loc mtblanc
-#   --loc sav --loc zrh --loc ulr --file /store/s83/swester/daint/const_sleve.nc
+# python evaluate_hhl.py --model icon --print_hhl --lev 35
+#   --loc mtblanc --loc sav --loc zrh --loc ulr
+#   --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc
+#   --file /store/s83/swester/daint/const_sleve.nc
 #
-# Maximum dz-difference between adjacent cells in ICON 
-# python evaluate_hhl.py --model icon --lev 1
+# Maximum dz-difference between adjacent cells at surface in ICON
+# python evaluate_hhl.py --model icon --lev 1 --print_max_dzdc
+#   --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc
 #   --file /store/s83/swester/teamx/tdf_2019091212/output/19091212/lfff00000000c.nc
-#   --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc --print_max_dzdc
 
 
 def info_minmax(hsurf):
@@ -178,11 +180,11 @@ def info_max_dzdc(hhl, grid_file, poi, lev, verify=False):
 
     if verify:
         print(f"--- Surface of neighbour 1 at cell {ii}:")
-        print(f"    {surf_n1[ii]}")
+        print(f"    {surf_n1[ii]:.2f}")
         print(f"--- Surface of neighbour 2 at cell {ii}:")
-        print(f"    {surf_n2[ii]}")
+        print(f"    {surf_n2[ii]:.2f}")
         print(f"--- Surface of neighbour 3 at cell {ii}:")
-        print(f"    {surf_n3[ii]}")
+        print(f"    {surf_n3[ii]:.2f}")
 
     # calculate absolute difference fields
     dz_n1 = np.abs(surf - surf_n1)
@@ -428,10 +430,10 @@ def evaluate_hhl(
     verify,
 ):
 
-    print(f"Evaluating {file}")
+    print(f"\nEvaluating {file}\n")
 
     # load file, retrieve relevant variables
-    ds = psy.open_dataset(file).squeeze()
+    ds = xr.open_dataset(file).squeeze()
 
     if "icon" in model:
         try:
@@ -439,9 +441,26 @@ def evaluate_hhl(
             lats = ds.clat_1.values
             lons = ds.clon_1.values
         except AttributeError:
-            hhl = ds.HHL.values
-            lats = ds.clat.values
-            lons = ds.clon.values
+            try:
+                hhl = ds.HEIGHT.values
+                lats = ds.clat.values
+                lons = ds.clon.values
+            except AttributeError:
+                try:
+                    hhl = ds.HHL.values
+                    lats = ds.clat.values
+                    lons = ds.clon.values
+                except AttributeError:
+                    try:
+                        hhl = np.array([ds.topography_c.values])
+                        lats = ds.clat.values
+                        lons = ds.clon.values
+                    except AttributeError:
+                        print(
+                            "--- names for 3D height field, latitudes or longitudes unknown!"
+                        )
+                        print(f"--- check: {file}")
+                        sys.exit(0)
 
         if max(lats) < 2:
             lats = np.rad2deg(lats)

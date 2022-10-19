@@ -5,6 +5,7 @@ dependencies:
   - git
   - numpy
   - matplotlib
+  - netcdf4
   - xarray
   - scipy
   - psyplot
