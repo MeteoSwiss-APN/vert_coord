@@ -213,7 +213,12 @@ def info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify=False):
     print(f"    {max_dzdc:.2f}")
     print(f"--- location:")
     print(f"    {lats[max_ii]:.3f}, {lons[max_ii]:.3f}")
-    print("\n***********************************************************")
+    print("\n***********************************************************\n")
+    for location in poi:
+        p = poi[location]
+        print(f"--- Maximum dz to any of the 3 neighbouring cells at {p.long_name}:")
+        print(f"    {dzdc[p.ind]:.2f}")
+    print("***********************************************************")
 
 
 def mapplot_coord_surf(file, grid_file, lev):
