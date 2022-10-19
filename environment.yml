@@ -12,6 +12,7 @@ dependencies:
   - psy-maps
   - ipython
   - ipdb
+  - black
   - click
   - cartopy
   - pip:

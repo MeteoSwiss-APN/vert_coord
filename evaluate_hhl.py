@@ -1,3 +1,8 @@
+# evaluate vertical coordinate from ICON simulation
+# Author: Stephanie Westerhuis
+# Date: September 2022
+###################################################
+
 # python packages
 from turtle import color
 from matplotlib import markers
@@ -13,7 +18,7 @@ import sys
 from pathlib import Path
 import os
 
-# home-made packages
+# home-made functions
 from utils import get_min_max
 from utils import ind_from_latlon
 from utils import get_poi
@@ -22,7 +27,7 @@ from utils import n_sum_up_to
 # example commands:
 #
 # COSMO-1:
-# python evaluate_hhl.py --print_info --model cosmo-1
+# python evaluate_hhl.py --print_dz --model cosmo-1
 #   --file /store/s83/swester/grids/const_modinterim.nc
 #
 # SLEVE in ICON:

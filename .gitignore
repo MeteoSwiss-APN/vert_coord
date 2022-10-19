@@ -131,3 +131,4 @@ dmypy.json
 # added manually
 figures/*
 texts/*
+hhl/*

@@ -1,3 +1,9 @@
+# utilities to evaluate and construct vertical coordinate
+# Author: Stephanie Westerhuis
+# Date: October 2022
+#########################################################
+
+# python packages
 import numpy as np
 import pandas as pd
 import iconarray
