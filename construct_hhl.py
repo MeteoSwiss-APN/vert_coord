@@ -63,6 +63,9 @@ def calc_vct_ab(n_levels, top_height, stretch_fac, h_flat):
     # fill vct_b from this level onwards with 0s
     vct_b[i_flat:] = 0
 
+    # obtain the same index order as in the FORTRAN code
+    vct_a = np.flip(vct_a)
+    vct_b = np.flip(vct_b)
     return vct_a, vct_b
 
 
