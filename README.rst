@@ -49,6 +49,15 @@ Constructs HHL field from an indicated surface elevation field and other setting
 ---------------------------------------------------------
 plot vertical slices from A to B with losvec_slices.ipynb
 ---------------------------------------------------------
+This is a notebook which was created to play around with slicing "as clean as possible" to be able to visualise a cross-section.
+
+For further usage, it is recommended to use LOSVEC.ipynb.
+
+The cross-section now goes along the following line:
+.. image:: example_plots/slice_a_b_large.png
+  :width: 200
+.. image:: example_plots/slice_a_b.png
+  :width: 200
 
 ---------------------
 Usage of LOSVEC.ipynb
