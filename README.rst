@@ -1,9 +1,14 @@
-# vert_coord
+==========
+vert_coord
+==========
 
+This repo gathers a variety of python scripts to create and evaluate a vertical coordinate for ICON.
 
-scripts to create and evaluate a vertical coordinate for ICON
+.. contents:: **Content**
 
-## Installation
+------------
+Installation
+------------
 
 This package does not yet comply with high-standard CICD.
 
@@ -15,18 +20,30 @@ and later update with:
 
 ``conda env update --file environment.yml``
 
-## Use evaluate_hhl.py
+------------------------
+Usage of evaluate_hhl.py
+------------------------
 
-### plot vertical slices from A to B
+Print altitude of levels at specific locations
+----------------------------------------------
+- lev: Indicate number of levels to be printed
+- loc: Locations
+- grid_file: ICON grid file
+- file: constants file containing HHL
+
+``python evaluate_hhl.py --print_hhl --lev 35 --loc mtblanc --loc sav --loc zrh --loc ulr --grid_file /store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc --file /store/s83/swester/vert_coord_files/icon-1-alps/const_sleve.nc``
 
 
-![image](https://user-images.githubusercontent.com/28092474/169787515-ed99ca27-590a-4156-b92d-c18259a60c16.png)
-![image](https://user-images.githubusercontent.com/28092474/169787569-4e224852-bbf6-44d7-b978-f71d29557bed.png)
+
+-------------------------
+Usage of construct_hhl.py
+-------------------------
+
+------------------------------------------------------------------------
+plot vertical slices from A to B with losvec_slices.ipynb
+------------------------------------------------------------------------
 
 
 
-### evaluate vertical grid
 
-``python evaluate_hhl.py --create_plots``
 
-![image](https://user-images.githubusercontent.com/28092474/169847132-3e5592c6-688a-4c15-b05e-e0c4b1dd429f.png)
