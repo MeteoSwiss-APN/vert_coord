@@ -60,21 +60,23 @@ resulting coordinates from the default parameters.
 
 The main parameters that can be varied are:
 
-    1) The input grid file and a corresponding HSURF variable
-    2) The Gal-Chen vectors **a** and **b**
-    3) The number of smoothing iterations, the constant *c_smooth* determining the strengh of each 
-    smoothing iteration, the minimum resulting difference in height of two successive levels 
-    (default = 15 m), and the maximum change in *dz* (default = 1.5 times the initial one).
+1) The input grid file and a corresponding HSURF variable
+2) The Gal-Chen vectors **a** and **b**
+3) The number of smoothing iterations, the constant *c_smooth* determining the strengh of each 
+smoothing iteration, the minimum resulting difference in height of two successive levels 
+(default = 15 m), and the maximum change in *dz* (default = 1.5 times the initial one).
+
 
 The functions that are present in this notebook are described as follows:
-    - *calc_vct_ab*: Create the Gal-Chen vectors from a desired number of levels, top height,
-    stretch factor and flat height (see documentation of construct_hhl.py)
-    - *fill_geofac_div_xr*: Create the divergence geometrical coefficients, used in the following function
-    - *fill_geofac_n2s_xr*: Create the nabla2_scalar geometrical coefficients, used for the smoothing
-    - *nabla2_scalar*: Use the geometrical coefficients to obtain the Laplacian of a field defined on the
-    cells of an ICON grid
-    - *c_smooth_topo*: Do one iteration of smoothing of a given topology
-    - *compute_LOSVEC_hhl*: Produce a 3D field of vertical coordinates from the Gal-Chen vectors and 
-    successive localized smoothings of a given topography.
-    - *ind_from_lat_lon*: Copied from losvec_slices.ipynb to visualize a slice of the produced field from 
-    the previous function.
+- *calc_vct_ab*: Create the Gal-Chen vectors from a desired number of levels, top height,
+stretch factor and flat height (see documentation of construct_hhl.py)
+- *fill_geofac_div_xr*: Create the divergence geometrical coefficients, used in the following function
+- *fill_geofac_n2s_xr*: Create the nabla2_scalar geometrical coefficients, used for the smoothing
+- *nabla2_scalar*: Use the geometrical coefficients to obtain the Laplacian of a field defined on the
+cells of an ICON grid
+- *c_smooth_topo*: Do one iteration of smoothing of a given topology
+- *compute_LOSVEC_hhl*: Produce a 3D field of vertical coordinates from the Gal-Chen vectors and 
+successive localized smoothings of a given topography.
+- *ind_from_lat_lon*: Copied from losvec_slices.ipynb to visualize a slice of the produced field from 
+the previous function.
+
