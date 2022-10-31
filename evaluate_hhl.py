@@ -26,20 +26,21 @@ from utils import n_sum_up_to
 
 # example commands:
 #
+# SLEVE in ICON:
+# python evaluate_hhl.py --print_hhl --lev 35
+#   --loc mtblanc --loc sav --loc zrh --loc ulr
+#   --grid_file /store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc
+#   --file /store/s83/swester/vert_coord_files/icon-1-alps/const_sleve.nc
+#
+# Maximum dz-difference between adjacent cells at surface in ICON
+# python evaluate_hhl.py --model icon --lev 1 --print_max_dzdc
+#   --grid_file /store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc
+#   --file /store/s83/swester/vert_coord_files/icon-1-alps/const_sleve.nc
+#
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
 #   --file /store/s83/swester/grids/const_modinterim.nc
 #
-# SLEVE in ICON:
-# python evaluate_hhl.py --model icon --print_hhl --lev 35
-#   --loc mtblanc --loc sav --loc zrh --loc ulr
-#   --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc
-#   --file /store/s83/swester/daint/const_sleve.nc
-#
-# Maximum dz-difference between adjacent cells at surface in ICON
-# python evaluate_hhl.py --model icon --lev 1 --print_max_dzdc
-#   --grid_file /store/s83/swester/grids/alps_R19B08/alps_DOM01.nc
-#   --file /store/s83/swester/teamx/tdf_2019091212/output/19091212/lfff00000000c.nc
 
 
 def info_minmax(hsurf):
@@ -360,7 +361,7 @@ def plot_dz(dz, poi, model, exp, out_dir):
 )
 @click.option(
     "--grid_file",
-    default="/store/s83/tsm/ICON_INPUT/icon-1e_dev/ICON-1E_DOM01.nc",
+    default="/store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc",
     help="REQUIRED FOR ICON: Netcdf file containing grid information.",
     type=str,
 )
@@ -522,7 +523,7 @@ def evaluate_hhl(
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
         if "icon" in model:
-            mapplot_coord_surf(file, grid_file, poi, lev)
+            mapplot_coord_surf(file, grid_file, lev)
         else:
             print(f"No mapplot available for {model}.")
 

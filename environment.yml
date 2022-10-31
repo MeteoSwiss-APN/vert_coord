@@ -6,6 +6,7 @@ dependencies:
   - numpy
   - matplotlib
   - netcdf4
+  - cfgrib
   - xarray
   - scipy
   - psyplot
@@ -15,5 +16,6 @@ dependencies:
   - black
   - click
   - cartopy
+  - ipykernel
   - pip:
-    - git+https://github.com/C2SM/iconarray@v0.1.22#egg=iconarray
+    - git+https://github.com/C2SM/iconarray@backend_grid_improvements
