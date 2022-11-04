@@ -23,24 +23,12 @@ from utils import get_min_max
 from utils import ind_from_latlon
 from utils import get_poi
 from utils import n_sum_up_to
+from utils import parse_out_dir
+from plotting import lineplot_transect
 
-# example commands:
-#
-# SLEVE in ICON:
-# python evaluate_hhl.py --print_hhl --lev 35
-#   --loc mtblanc --loc sav --loc zrh --loc ulr
-#   --grid_file /store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc
-#   --file /store/s83/swester/vert_coord_files/icon-1-alps/const_sleve.nc
-#
-# Maximum dz-difference between adjacent cells at surface in ICON
-# python evaluate_hhl.py --model icon --lev 1 --print_max_dzdc
-#   --grid_file /store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc
-#   --file /store/s83/swester/vert_coord_files/icon-1-alps/const_sleve.nc
-#
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
 #   --file /store/s83/swester/grids/const_modinterim.nc
-#
 
 
 def info_minmax(hsurf):
@@ -410,8 +398,8 @@ def plot_dz(dz, poi, model, exp, out_dir):
     default=12,
 )
 @click.option(
-    "--create_plots",
-    help="Deprecated. Should plot all interesting figures for one file.",
+    "--plot_transect",
+    help="Plot vertical transect across Swiss Plateau.",
     is_flag=True,
     default=False,
     type=bool,
@@ -419,7 +407,7 @@ def plot_dz(dz, poi, model, exp, out_dir):
 @click.option(
     "--out_dir",
     help="Change output directory for figures.",
-    default="/scratch/swester/vert_coord/figures",
+    default="vc_scratch",
     type=str,
 )
 @click.option(
@@ -440,14 +428,17 @@ def evaluate_hhl(
     plot_surf,
     lev,
     loc,
-    create_plots,
+    plot_transect,
     out_dir,
     verify,
 ):
 
     print(f"\nEvaluating {file}\n")
 
-    # load file, retrieve relevant variables
+    out_dir = parse_out_dir(out_dir)
+    print(out_dir)
+
+    # load constants file, retrieve relevant variables
     ds = xr.open_dataset(file).squeeze()
 
     if "icon" in model:
@@ -497,6 +488,10 @@ def evaluate_hhl(
     dz = hhl[:-1, :] - hhl[1:, :]
     # hfl = hhl[1:, :] + dz[:, :] / 2
 
+    # load grid file
+    ds_grid = xr.open_dataset(grid_file).squeeze()
+    neighbour_ind = ds_grid.neighbor_cell_index.values
+
     # load points of interest
     all_poi = get_poi(lats, lons)
     if loc[0] == "all":
@@ -527,8 +522,8 @@ def evaluate_hhl(
         else:
             print(f"No mapplot available for {model}.")
 
-    if create_plots:
-        plot_dz(dz, poi, model, config, out_dir)
+    if plot_transect:
+        lineplot_transect(hhl, neighbour_ind, poi, config, out_dir)
 
 
 if __name__ == "__main__":

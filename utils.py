@@ -121,3 +121,15 @@ def n_sum_up_to(dz, top):
     """
     cumsum = np.cumsum(dz)
     return np.sum(cumsum < top)
+
+def parse_out_dir(out_dir):
+    """Parse out_dir input.
+
+    Return figures folders in repo if out_dir = default
+
+    """
+    if out_dir == "vc_scratch":
+        user = os.getlogin()
+        return Path("/scratch/e1000/meteoswiss/scratch", user, "vert_coord/figures")
+    else:
+        return out_dir
