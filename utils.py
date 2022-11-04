@@ -64,11 +64,11 @@ def get_poi(lats, lons):
 
     """
     poi = pd.DataFrame(
-        columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic"],
+        columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic", "ste"],
         index=["long_name", "ind", "h_real"],
     )
 
-    # indeces of specific locations
+    # indices of specific locations
     ind_mtblanc = ind_from_latlon(lats, lons, 45.83267, 6.86437)
     ind_zrh = ind_from_latlon(lats, lons, 47.46218, 8.54458)
     ind_pay = ind_from_latlon(lats, lons, 46.81291, 6.94418)
@@ -77,6 +77,7 @@ def get_poi(lats, lons):
     ind_sav = ind_from_latlon(lats, lons, 44.276917, 8.546750)
     ind_duf = ind_from_latlon(lats, lons, 45.93692, 7.86675)
     ind_cic = ind_from_latlon(lats, lons, 45.72350, 8.61444)
+    ind_ste = ind_from_latlon(lats, lons, 46.77884, 7.63525)
 
     poi["mtblanc"].long_name = "Mt Blanc"
     poi["zrh"].long_name = "Zürich"
@@ -86,6 +87,7 @@ def get_poi(lats, lons):
     poi["sav"].long_name = "Savona"
     poi["duf"].long_name = "Dufourspitze"
     poi["cic"].long_name = "Cicognola"
+    poi["ste"].long_name = "Steffisburg"
 
     poi["mtblanc"].ind = ind_mtblanc
     poi["zrh"].ind = ind_zrh
@@ -95,6 +97,7 @@ def get_poi(lats, lons):
     poi["sav"].ind = ind_sav
     poi["duf"].ind = ind_duf
     poi["cic"].ind = ind_cic
+    poi["ste"].ind = ind_ste
 
     poi["mtblanc"].h_real = 4808.0
     poi["zrh"].h_real = 422.0
@@ -104,6 +107,7 @@ def get_poi(lats, lons):
     poi["sav"].h_real = 0.0
     poi["duf"].h_real = 4634.0
     poi["cic"].h_real = 197.0
+    poi["ste"].h_real = 586.0
 
     return poi
 
@@ -121,6 +125,7 @@ def n_sum_up_to(dz, top):
     """
     cumsum = np.cumsum(dz)
     return np.sum(cumsum < top)
+
 
 def parse_out_dir(out_dir):
     """Parse out_dir input.
