@@ -24,7 +24,8 @@ from utils import ind_from_latlon
 from utils import get_poi
 from utils import n_sum_up_to
 from utils import parse_out_dir
-from plotting import lineplot_transect
+from plotting import transect_hhl
+from plotting import transect_topo
 
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
@@ -398,8 +399,15 @@ def plot_dz(dz, poi, model, exp, out_dir):
     default=12,
 )
 @click.option(
-    "--plot_transect",
-    help="Plot vertical transect across Swiss Plateau.",
+    "--plot_hhl",
+    help="Plot vertical transect of vertical coordinate surfaces.",
+    is_flag=True,
+    default=False,
+    type=bool,
+)
+@click.option(
+    "--plot_topo",
+    help="Plot topography.",
     is_flag=True,
     default=False,
     type=bool,
@@ -428,7 +436,8 @@ def evaluate_hhl(
     plot_surf,
     lev,
     loc,
-    plot_transect,
+    plot_hhl,
+    plot_topo,
     out_dir,
     verify,
 ):
@@ -522,8 +531,11 @@ def evaluate_hhl(
         else:
             print(f"No mapplot available for {model}.")
 
-    if plot_transect:
-        lineplot_transect(hhl, neighbour_ind, poi, config, out_dir)
+    if plot_hhl:
+        transect_hhl(hhl, neighbour_ind, poi, config, out_dir)
+
+    if plot_topo:
+        transect_topo(hhl, neighbour_ind, poi, config, out_dir)
 
 
 if __name__ == "__main__":

@@ -138,3 +138,50 @@ def parse_out_dir(out_dir):
         return Path("/scratch/e1000/meteoswiss/scratch", user, "vert_coord/figures")
     else:
         return out_dir
+
+
+def indices_transect(ind, neighbors, n_cells_se=35, n_cells_nw=25, verify=False):
+
+    # triangle collection index
+    index_pattern_se = [2, 1] * n_cells_se
+    n_all_cells_se = 2 * n_cells_se
+    index_list_se = np.empty(n_all_cells_se, dtype=int)
+
+    index_pattern_nw = [1, 2] * n_cells_nw
+    n_all_cells_nw = 2 * n_cells_nw
+    index_list_nw = np.empty(n_all_cells_nw, dtype=int)
+
+    # extend in south-east direction
+    new_index = ind
+    for e, i in enumerate(index_pattern_se):
+        neighbors_new_ind = neighbors[:, new_index]
+        new_index = neighbors_new_ind[i] - 1
+        index_list_se[e] = new_index
+
+    # extend in north-west direction
+    new_index = ind
+    for e, i in enumerate(index_pattern_nw):
+        neighbors_new_ind = neighbors[:, new_index]
+        new_index = neighbors_new_ind[i] - 1
+        index_list_nw[e] = new_index
+    # reverse order of those indices
+    index_list_nw = index_list_nw[::-1]
+
+    # concatenate to one line
+    ind_line = np.append(np.append(index_list_nw, np.array(ind)), index_list_se)
+
+    # numbering of indices with respect to origin
+    ind_wrt_origin = np.arange(-n_all_cells_nw, n_all_cells_se + 1)
+
+    if verify:
+        for e, i in enumerate(ind_line):
+            print(f"---- Index at:                      {i}")
+            if e % 2 == 0:
+                position_next_ind = 2
+            else:
+                position_next_ind = 1
+            print(
+                f"Next neighbour index at position {position_next_ind}: {neighbors[position_next_ind,i] - 1 }"
+            )
+
+    return ind_line, ind_wrt_origin

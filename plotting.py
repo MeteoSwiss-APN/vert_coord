@@ -4,45 +4,52 @@ import numpy as np
 from pathlib import Path
 from ipdb import set_trace
 
+from utils import indices_transect
 
-def lineplot_transect(hhl, neighbour_ind, poi, config, out_dir):
+
+def transect_hhl(hhl, neighbors, poi, config, out_dir):
+
+    for location in poi:
+        loc = poi[location]
+
+        # retrieve indices of cells along 1 straight line
+        ind_line, ind_wrt_origin = indices_transect(loc.ind, neighbors)
+
+        # create figure
+        fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+
+        transect = hhl[:, ind_line]
+
+        ax.plot(ind_wrt_origin, transect[-1, :], linewidth=2, color="k")
+
+        l_colors = plt.cm.RdPu_r(np.linspace(0, 1, 19))
+        for i, level in enumerate(np.arange(2, 20)):
+            ax.plot(ind_wrt_origin, transect[-level, :], color=l_colors[i])
+
+        ax.axvline(0, linewidth=0.5, color="grey")
+
+        # plot labelling
+        ax.set_title(f"Transect through {loc.long_name}")
+        ax.set_xlabel(f"Cells with respect to {loc.long_name}")
+        ax.set_ylabel("Altitude [masl]")
+
+        out_name = Path(out_dir, f"transect_{location}_{config}.png")
+        plt.savefig(out_name)
+
+
+def transect_topo(hhl, neighbour_ind, poi, config, out_dir):
 
     for location in poi:
         loc = poi[location]
 
         fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 
-        # triangle collection index
-        index_pattern_se = [2, 1] * 35
-        index_list_se = np.empty(70, dtype=int)
-        index_pattern_nw = [1, 2] * 15
-        index_list_nw = np.empty(30, dtype=int)
+        # ax.plot(transect[-1, :])
 
-        # extend in south-east direction
-        new_index = loc.ind
-        for e, i in enumerate(index_pattern_se):
-            neighbors = neighbour_ind[:, new_index]
-            new_index = neighbors[i] - 1
-            index_list_se[e] = new_index
+        ## plot labelling
+        # ax.set_title(f"Topography starting at {loc.long_name}")
+        # ax.set_xlabel("Cells")
+        # ax.set_ylabel("Altitude [masl]")
 
-        # extend in northwest direction
-        new_index = loc.ind
-        for e, i in enumerate(index_pattern_nw):
-            neighbors = neighbour_ind[:, new_index]
-            new_index = neighbors[i] - 1
-            index_list_nw[e] = new_index
-
-        ind_line = np.append(np.append(index_list_nw, np.array(loc.ind)), index_list_se)
-
-        transect = hhl[:, ind_line]
-
-        for i in range(1, 20):
-            ax.plot(transect[-i, :])
-
-        # plot labelling
-        ax.set_title(f"Transect through {loc.long_name}")
-        ax.set_xlabel("Cells")
-        ax.set_ylabel("Altitude [masl]")
-
-        out_name = Path(out_dir, f"transect_{location}_{config}.png")
-        plt.savefig(out_name)
+        # out_name = Path(out_dir, f"topography_{location}_{config}.png")
+        # plt.savefig(out_name)
