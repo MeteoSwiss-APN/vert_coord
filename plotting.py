@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 from ipdb import set_trace
+import psyplot.project as psy
+import cartopy.crs as ccrs
 
 from utils import indices_transect
 
@@ -43,29 +45,57 @@ def transect_hhl(hhl, neighbors, poi, config, out_dir):
         print(f"Saved as: {out_name}")
 
 
-def transect_topo(hhl, neighbors, poi, config, out_dir):
+def transect_topo(hhl, neighbors, ds, poi, config, out_dir):
 
     for location in poi:
         loc = poi[location]
+        surf = hhl[-1, :]
 
         # retrieve indices of cells along 1 straight line
         ind_line, ind_wrt_origin = indices_transect(loc.ind, neighbors)
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+        # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+        # fig, ax2 = plt.subplots(1, 1, figsize=(10, 5))
+        fig = plt.figure(figsize=(7, 2.7), tight_layout=False)
+        fig.subplots_adjust(left=0.01, right=0.99, bottom=0.2, top=0.95)
+        gs = fig.add_gridspec(
+            nrows=1,
+            ncols=10,
+        )
+        ax1 = fig.add_subplot(gs[0, 0:3], projection=ccrs.PlateCarree())
+        ax2 = fig.add_subplot(gs[0, 4:])
+
+        # 1st part of figure: 2d orography
+        ##################################
+        mask = np.ones(len(surf))
+        mask[ind_line] = np.nan
+        ds = ds.assign(HSURF_masked=ds["HSURF"] * mask)
+        ds.HSURF_masked.encoding["coordinates"] = "clat clon"
+        mapplot = psy.plot.mapplot(
+            ds,
+            name="HSURF_masked",
+            map_extent=[loc.lon - 0.7, loc.lon + 0.7, loc.lat - 0.6, loc.lat + 0.6],
+            xgrid=False,
+            ygrid=False,
+            cmap="viridis",
+            ax=ax1,
+        )
+
+        # 2nd part of figure: vertical transect
+        #######################################
 
         # transect from A to B
-        transect_surf = hhl[-1, ind_line]
+        transect_surf = surf[ind_line]
 
         # plot surface
-        ax.plot(ind_wrt_origin, transect_surf, linewidth=2, color="darkorange")
+        ax2.plot(ind_wrt_origin, transect_surf, linewidth=2, color="darkorange")
 
         # indicate location of poi
-        ax.axvline(0, linewidth=0.5, color="grey")
+        ax2.axvline(0, linewidth=0.5, color="grey")
 
         # plot labelling
-        ax.set_title(f"Transect of topography through {loc.long_name}")
-        ax.set_xlabel(f"Cells with respect to {loc.long_name}")
-        ax.set_ylabel("Altitude [masl]")
+        ax2.set_xlabel(f"Cells with respect to {loc.long_name}")
+        ax2.set_ylabel("Altitude [masl]")
 
         # save
         out_name = Path(out_dir, f"topo_{location}_{config}.png")

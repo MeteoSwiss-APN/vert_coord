@@ -65,19 +65,8 @@ def get_poi(lats, lons):
     """
     poi = pd.DataFrame(
         columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic", "ste"],
-        index=["long_name", "ind", "h_real"],
+        index=["long_name", "ind", "h_real", "lat", "lon"],
     )
-
-    # indices of specific locations
-    ind_mtblanc = ind_from_latlon(lats, lons, 45.83267, 6.86437)
-    ind_zrh = ind_from_latlon(lats, lons, 47.46218, 8.54458)
-    ind_pay = ind_from_latlon(lats, lons, 46.81291, 6.94418)
-    ind_visp = ind_from_latlon(lats, lons, 46.29861, 7.88004)
-    ind_ulr = ind_from_latlon(lats, lons, 46.50568, 8.30610)
-    ind_sav = ind_from_latlon(lats, lons, 44.276917, 8.546750)
-    ind_duf = ind_from_latlon(lats, lons, 45.93692, 7.86675)
-    ind_cic = ind_from_latlon(lats, lons, 45.72350, 8.61444)
-    ind_ste = ind_from_latlon(lats, lons, 46.77884, 7.63525)
 
     poi["mtblanc"].long_name = "Mt Blanc"
     poi["zrh"].long_name = "Zürich"
@@ -88,6 +77,37 @@ def get_poi(lats, lons):
     poi["duf"].long_name = "Dufourspitze"
     poi["cic"].long_name = "Cicognola"
     poi["ste"].long_name = "Steffisburg"
+
+    poi["mtblanc"].lat = 45.83267
+    poi["zrh"].lat = 47.46218
+    poi["pay"].lat = 46.81291
+    poi["visp"].lat = 46.29861
+    poi["ulr"].lat = 46.50568
+    poi["sav"].lat = 44.27691
+    poi["duf"].lat = 45.93692
+    poi["cic"].lat = 45.72350
+    poi["ste"].lat = 46.77884
+
+    poi["mtblanc"].lon = 6.86437
+    poi["zrh"].lon = 8.54458
+    poi["pay"].lon = 6.94418
+    poi["visp"].lon = 7.88004
+    poi["ulr"].lon = 8.30610
+    poi["sav"].lon = 8.54675
+    poi["duf"].lon = 7.86675
+    poi["cic"].lon = 8.61444
+    poi["ste"].lon = 7.63525
+
+    # indices of specific locations
+    ind_mtblanc = ind_from_latlon(lats, lons, 45.83267, 6.86437)
+    ind_zrh = ind_from_latlon(lats, lons, 47.46218, 8.54458)
+    ind_pay = ind_from_latlon(lats, lons, 46.81291, 6.94418)
+    ind_visp = ind_from_latlon(lats, lons, 46.29861, 7.88004)
+    ind_ulr = ind_from_latlon(lats, lons, 46.50568, 8.30610)
+    ind_sav = ind_from_latlon(lats, lons, 44.27691, 8.54675)
+    ind_duf = ind_from_latlon(lats, lons, 45.93692, 7.86675)
+    ind_cic = ind_from_latlon(lats, lons, 45.72350, 8.61444)
+    ind_ste = ind_from_latlon(lats, lons, 46.77884, 7.63525)
 
     poi["mtblanc"].ind = ind_mtblanc
     poi["zrh"].ind = ind_zrh

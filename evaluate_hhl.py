@@ -17,6 +17,9 @@ from ipdb import set_trace
 import sys
 from pathlib import Path
 import os
+import warnings
+
+warnings.filterwarnings("ignore", message="Shapefile")
 
 # home-made functions
 from utils import get_min_max
@@ -448,7 +451,10 @@ def evaluate_hhl(
     print(out_dir)
 
     # load constants file, retrieve relevant variables
-    ds = xr.open_dataset(file).squeeze()
+    # ds = xr.open_dataset(file).squeeze()
+
+    # merge grid information into dataset
+    ds = iconarray.combine_grid_information(file, grid_file)
 
     if "icon" in model:
         try:
@@ -535,7 +541,7 @@ def evaluate_hhl(
         transect_hhl(hhl, neighbour_ind, poi, config, out_dir)
 
     if plot_topo:
-        transect_topo(hhl, neighbour_ind, poi, config, out_dir)
+        transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir)
 
 
 if __name__ == "__main__":
