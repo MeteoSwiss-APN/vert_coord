@@ -88,7 +88,20 @@ def transect_topo(hhl, neighbors, ds, poi, config, out_dir):
         transect_surf = surf[ind_line]
 
         # plot surface
-        ax2.plot(ind_wrt_origin, transect_surf, linewidth=2, color="darkorange")
+        ax2.plot(
+            ind_wrt_origin, transect_surf, linewidth=2, color="darkorange", label="orig"
+        )
+
+        # add additional line to indicate every 2nd grid cell
+        transect_surf_2 = transect_surf[np.arange(0, len(ind_line), 2)]
+        ind_wrt_origin_2 = ind_wrt_origin[np.arange(0, len(ind_line), 2)]
+        ax2.plot(
+            ind_wrt_origin_2,
+            transect_surf_2,
+            linewidth=0.4,
+            color="darkblue",
+            label="every 2nd cell",
+        )
 
         # indicate location of poi
         ax2.axvline(0, linewidth=0.5, color="grey")
@@ -96,6 +109,9 @@ def transect_topo(hhl, neighbors, ds, poi, config, out_dir):
         # plot labelling
         ax2.set_xlabel(f"Cells with respect to {loc.long_name}")
         ax2.set_ylabel("Altitude [masl]")
+
+        # legend
+        ax2.legend()
 
         # save
         out_name = Path(out_dir, f"topo_{location}_{config}.png")
