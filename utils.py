@@ -11,6 +11,7 @@ from ipdb import set_trace
 import sys
 from pathlib import Path
 import os
+from scipy import spatial
 
 
 def get_min_max(arr):
@@ -47,9 +48,39 @@ def ind_from_latlon(lats, lons, lat, lon, verbose=False):
     if verbose:
         print(f"Closest ind: {ind}")
         print(f" Given lat: {lat:.3f} vs found lat: {lats[ind]:.3f}")
-        print(f" Given lat: {lon:.3f} vs found lon: {lons[ind]:.3f}")
+        print(f" Given lon: {lon:.3f} vs found lon: {lons[ind]:.3f}")
 
     return ind
+
+
+def ind_from_latlon_regular(lats, lons, lat, lon, verbose=False):
+    """Find the nearest indices to given location on a regular grid.
+
+    Args:
+        lats (2d array):            Latitude grid
+        lons (2d array):            Longitude grid
+        lat (float):                Latitude of location
+        lon (float):                Longitude of location
+        verbose (bool, optional):   Print information. Defaults to False.
+
+    Returns:
+        ind_lat, ind_lon     Indices of nearest grid point.
+    """
+    lon_lat = np.array(list(zip(lons.ravel(), lats.ravel())))
+    kdtree = spatial.KDTree(lon_lat)
+    x_shp = lons.shape[0]
+    y_shp = lons.shape[1]
+    data_index = np.arange(0, x_shp * y_shp).reshape(x_shp, y_shp)
+    distance, i = kdtree.query((lon, lat))
+    ind_lat, ind_lon = np.argwhere(data_index == i)[0]
+
+    if verbose:
+        print(f"Closest indices in y- and x-direction: {ind_lat}, {ind_lon}")
+        print(f" Given lat: {lat:.3f} vs found lat: {lats[ind_lat, ind_lon]:.3f}")
+        print(f" Given lon: {lon:.3f} vs found lon: {lons[ind_lat, ind_lon]:.3f}")
+        print(f" Distance: {distance:.3f}")
+
+    return ind_lat, ind_lon
 
 
 def get_poi(lats, lons):
