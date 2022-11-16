@@ -96,7 +96,7 @@ def get_poi(lats, lons):
     """
     poi = pd.DataFrame(
         columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic", "ste"],
-        index=["long_name", "ind", "h_real", "lat", "lon"],
+        index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
 
     poi["mtblanc"].long_name = "Mt Blanc"
@@ -160,6 +160,16 @@ def get_poi(lats, lons):
     poi["cic"].h_real = 197.0
     poi["ste"].h_real = 586.0
 
+    poi["mtblanc"].left_to_right = False
+    poi["zrh"].left_to_right = None
+    poi["pay"].left_to_right = True
+    poi["visp"].left_to_right = True
+    poi["ulr"].left_to_right = False
+    poi["sav"].left_to_right = None
+    poi["duf"].left_to_right = False
+    poi["cic"].left_to_right = True
+    poi["ste"].left_to_right = False
+
     return poi
 
 
@@ -191,14 +201,22 @@ def parse_out_dir(out_dir):
         return out_dir
 
 
-def indices_transect(ind, neighbors, n_cells_se=35, n_cells_nw=25, verify=False):
+def indices_transect(
+    ind, neighbors, left_to_right=True, n_cells_se=35, n_cells_nw=25, verify=False
+):
 
     # triangle collection index
-    index_pattern_se = [2, 1] * n_cells_se
+    if left_to_right:
+        index_pattern_se = [2, 1] * n_cells_se
+    else:
+        index_pattern_se = [1, 2] * n_cells_se
     n_all_cells_se = 2 * n_cells_se
     index_list_se = np.empty(n_all_cells_se, dtype=int)
 
-    index_pattern_nw = [1, 2] * n_cells_nw
+    if left_to_right:
+        index_pattern_nw = [1, 2] * n_cells_nw
+    else:
+        index_pattern_nw = [2, 1] * n_cells_nw
     n_all_cells_nw = 2 * n_cells_nw
     index_list_nw = np.empty(n_all_cells_nw, dtype=int)
 
