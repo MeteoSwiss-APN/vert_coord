@@ -5,8 +5,12 @@ from pathlib import Path
 from ipdb import set_trace
 import psyplot.project as psy
 import cartopy.crs as ccrs
+import warnings
+
+warnings.filterwarnings("ignore", message="Shapefile")
 
 from utils import indices_transect
+from utils import get_poi
 
 
 def transect_hhl(hhl, neighbors, poi, config, out_dir, n_levels):
@@ -121,3 +125,67 @@ def transect_topo(hhl, neighbors, ds, poi, config, out_dir, level=1):
         out_name = Path(out_dir, f"topo_{location}_{config}.png")
         plt.savefig(out_name, dpi=200)
         print(f"Saved as: {out_name}")
+
+
+def mapplot_coord_surf(ds, config, out_dir, lev, loc, radius, vmin, vmax):
+
+    fig = plt.figure(figsize=(12, 7), tight_layout=True)
+    ax1 = fig.add_subplot(projection=ccrs.PlateCarree())
+
+    # get level number, find variable name for height field
+    try:
+        nlev = ds.HHL.values.shape[0]
+        name_height = "HHL"
+    except AttributeError:
+        nlev = ds.HEIGHT.values.shape[0]
+        name_height = "HEIGHT"
+    zz = nlev - lev
+
+    if loc[0] == "all":
+        surf_map = ds.psy.plot.mapplot(
+            ax=ax1,
+            name=name_height,
+            cticksize="small",
+            borders=True,
+            lakes=True,
+            rivers=True,
+            projection="robin",
+            title=f"Elevation of {lev}. coordinate surface",
+            clabel="m asl",
+            z=zz,  # specify level
+        )
+        out_name = Path(out_dir, f"altitude_{lev}_coordinate_surface_{config}.png")
+        plt.savefig(out_name)
+        print(f"Saved as: {out_name}")
+
+    else:
+        poi = get_poi(loc)
+
+        for name, col in poi.items():
+            print(f"--- Plotting {lev}. level around {name}...")
+
+            lonmin = col.lon - radius * 0.01
+            lonmax = col.lon + radius * 0.01
+            latmin = col.lat - radius * 0.01
+            latmax = col.lat + radius * 0.01
+
+            surf_map = ds.psy.plot.mapplot(
+                ax=ax1,
+                name=name_height,
+                xgrid=None,
+                ygrid=None,
+                map_extent=[lonmin, lonmax, latmin, latmax],
+                cmap="terrain",
+                cticksize="small",
+                projection="robin",
+                title=f"Elevation of {lev}. coordinate surface around {col.long_name}",
+                clabel="m asl",
+                z=zz,  # specify specific level
+                bounds={"method": "minmax", "vmin": vmin, "vmax": vmax},
+            )
+
+            out_name = Path(
+                out_dir, f"altitude_{lev}_coordinate_surface_{name}_{config}.png"
+            )
+            plt.savefig(out_name)
+            print(f"Saved as: {out_name}")

@@ -83,92 +83,98 @@ def ind_from_latlon_regular(lats, lons, lat, lon, verbose=False):
     return ind_lat, ind_lon
 
 
-def get_poi(lats, lons):
+def get_poi(loc, lats=None, lons=None):
     """Points of interest for analysis.
 
     Args:
         lats
         lons
+        loc
 
     Returns:
         pd dataframe
 
     """
-    poi = pd.DataFrame(
-        columns=["mtblanc", "zrh", "pay", "visp", "ulr", "sav", "duf", "cic", "ste"],
+    all_poi = pd.DataFrame(
+        columns=[
+            "mtblanc",
+            "zrh",
+            "pay",
+            "visp",
+            "ulr",
+            "sav",
+            "duf",
+            "cic",
+            "loc",
+            "ste",
+        ],
         index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
 
-    poi["mtblanc"].long_name = "Mt Blanc"
-    poi["zrh"].long_name = "Zürich"
-    poi["pay"].long_name = "Payerne"
-    poi["visp"].long_name = "Visp"
-    poi["ulr"].long_name = "Ulrichen"
-    poi["sav"].long_name = "Savona"
-    poi["duf"].long_name = "Dufourspitze"
-    poi["cic"].long_name = "Cicognola"
-    poi["ste"].long_name = "Steffisburg"
+    all_poi["mtblanc"].long_name = "Mt Blanc"
+    all_poi["zrh"].long_name = "Zürich"
+    all_poi["pay"].long_name = "Payerne"
+    all_poi["visp"].long_name = "Visp"
+    all_poi["ulr"].long_name = "Ulrichen"
+    all_poi["sav"].long_name = "Savona"
+    all_poi["duf"].long_name = "Dufourspitze"
+    all_poi["cic"].long_name = "Cicognola"
+    all_poi["loc"].long_name = "Locarno"
+    all_poi["ste"].long_name = "Steffisburg"
 
-    poi["mtblanc"].lat = 45.83267
-    poi["zrh"].lat = 47.46218
-    poi["pay"].lat = 46.81291
-    poi["visp"].lat = 46.29861
-    poi["ulr"].lat = 46.50568
-    poi["sav"].lat = 44.27691
-    poi["duf"].lat = 45.93692
-    poi["cic"].lat = 45.72350
-    poi["ste"].lat = 46.77884
+    all_poi["mtblanc"].lat = 45.83267
+    all_poi["zrh"].lat = 47.46218
+    all_poi["pay"].lat = 46.81291
+    all_poi["visp"].lat = 46.29861
+    all_poi["ulr"].lat = 46.50568
+    all_poi["sav"].lat = 44.27691
+    all_poi["duf"].lat = 45.93692
+    all_poi["cic"].lat = 45.72350
+    all_poi["loc"].lat = 46.16961
+    all_poi["ste"].lat = 46.77884
 
-    poi["mtblanc"].lon = 6.86437
-    poi["zrh"].lon = 8.54458
-    poi["pay"].lon = 6.94418
-    poi["visp"].lon = 7.88004
-    poi["ulr"].lon = 8.30610
-    poi["sav"].lon = 8.54675
-    poi["duf"].lon = 7.86675
-    poi["cic"].lon = 8.61444
-    poi["ste"].lon = 7.63525
+    all_poi["mtblanc"].lon = 6.86437
+    all_poi["zrh"].lon = 8.54458
+    all_poi["pay"].lon = 6.94418
+    all_poi["visp"].lon = 7.88004
+    all_poi["ulr"].lon = 8.30610
+    all_poi["sav"].lon = 8.54675
+    all_poi["duf"].lon = 7.86675
+    all_poi["cic"].lon = 8.61444
+    all_poi["loc"].lon = 8.77102
+    all_poi["ste"].lon = 7.63525
+
+    all_poi["mtblanc"].h_real = 4808.0
+    all_poi["zrh"].h_real = 422.0
+    all_poi["pay"].h_real = 491.0
+    all_poi["visp"].h_real = 646.0
+    all_poi["ulr"].h_real = 1345.0
+    all_poi["sav"].h_real = 0.0
+    all_poi["duf"].h_real = 4634.0
+    all_poi["cic"].h_real = 197.0
+    all_poi["loc"].h_real = 202.0
+    all_poi["ste"].h_real = 586.0
+
+    all_poi["mtblanc"].left_to_right = False
+    all_poi["zrh"].left_to_right = None
+    all_poi["pay"].left_to_right = True
+    all_poi["visp"].left_to_right = True
+    all_poi["ulr"].left_to_right = False
+    all_poi["sav"].left_to_right = None
+    all_poi["duf"].left_to_right = False
+    all_poi["cic"].left_to_right = True
+    all_poi["loc"].left_to_right = None
+    all_poi["ste"].left_to_right = False
+
+    if loc[0] == "all":
+        poi = all_poi
+    else:
+        poi = all_poi[list(loc)]
 
     # indices of specific locations
-    ind_mtblanc = ind_from_latlon(lats, lons, 45.83267, 6.86437)
-    ind_zrh = ind_from_latlon(lats, lons, 47.46218, 8.54458)
-    ind_pay = ind_from_latlon(lats, lons, 46.81291, 6.94418)
-    ind_visp = ind_from_latlon(lats, lons, 46.29861, 7.88004)
-    ind_ulr = ind_from_latlon(lats, lons, 46.50568, 8.30610)
-    ind_sav = ind_from_latlon(lats, lons, 44.27691, 8.54675)
-    ind_duf = ind_from_latlon(lats, lons, 45.93692, 7.86675)
-    ind_cic = ind_from_latlon(lats, lons, 45.72350, 8.61444)
-    ind_ste = ind_from_latlon(lats, lons, 46.77884, 7.63525)
-
-    poi["mtblanc"].ind = ind_mtblanc
-    poi["zrh"].ind = ind_zrh
-    poi["pay"].ind = ind_pay
-    poi["visp"].ind = ind_visp
-    poi["ulr"].ind = ind_ulr
-    poi["sav"].ind = ind_sav
-    poi["duf"].ind = ind_duf
-    poi["cic"].ind = ind_cic
-    poi["ste"].ind = ind_ste
-
-    poi["mtblanc"].h_real = 4808.0
-    poi["zrh"].h_real = 422.0
-    poi["pay"].h_real = 491.0
-    poi["visp"].h_real = 646.0
-    poi["ulr"].h_real = 1345.0
-    poi["sav"].h_real = 0.0
-    poi["duf"].h_real = 4634.0
-    poi["cic"].h_real = 197.0
-    poi["ste"].h_real = 586.0
-
-    poi["mtblanc"].left_to_right = False
-    poi["zrh"].left_to_right = None
-    poi["pay"].left_to_right = True
-    poi["visp"].left_to_right = True
-    poi["ulr"].left_to_right = False
-    poi["sav"].left_to_right = None
-    poi["duf"].left_to_right = False
-    poi["cic"].left_to_right = True
-    poi["ste"].left_to_right = False
+    if None not in (lats, lons):
+        for name, col in poi.items():
+            col.ind = ind_from_latlon(lats, lons, col.lat, col.lon)
 
     return poi
 
@@ -254,3 +260,63 @@ def indices_transect(
             )
 
     return ind_line, ind_wrt_origin
+
+
+def retrieve_vars(file_str, model):
+
+    try:
+        ds = xr.open_dataset(file_str)
+    except FileNotFoundError:
+        print(f"!! File does not exist: {file_str}")
+
+    if "icon" in model:
+        try:
+            hhl = ds.HEIGHT.values
+            lats = ds.clat_1.values
+            lons = ds.clon_1.values
+        except AttributeError:
+            try:
+                hhl = ds.HEIGHT.values
+                lats = ds.clat.values
+                lons = ds.clon.values
+            except AttributeError:
+                try:
+                    hhl = ds.HHL.values
+                    lats = ds.clat.values
+                    lons = ds.clon.values
+                except AttributeError:
+                    try:
+                        hhl = np.array([ds.topography_c.values])
+                        lats = ds.clat.values
+                        lons = ds.clon.values
+                    except AttributeError:
+                        print(
+                            "--- names for 3D height field, latitudes or longitudes unknown!"
+                        )
+                        print(f"--- check: {file}")
+                        sys.exit(0)
+
+        if max(lats) < 2:
+            lats = np.rad2deg(lats)
+            lons = np.rad2deg(lons)
+
+    elif "cosmo" in model:
+        hhl_3d = ds.HEIGHT.values
+        s1 = hhl_3d.shape[1]
+        s2 = hhl_3d.shape[2]
+        hhl = hhl_3d.reshape(hhl_3d.shape[0], s1 * s2)
+        lats = ds.lat_1.values.flatten()
+        lons = ds.lon_1.values.flatten()
+
+    else:
+        print("Model type unknown!")
+        sys.exit(1)
+
+    hsurf = hhl[-1, :]
+    dz = hhl[:-1, :] - hhl[1:, :]
+
+    return lats, lons, hhl, hsurf, dz
+
+
+def open_icon_ds(file, grid_file):
+    return iconarray.combine_grid_information(file, grid_file)

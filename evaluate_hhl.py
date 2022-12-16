@@ -4,22 +4,14 @@
 ###################################################
 
 # python packages
-from turtle import color
-from matplotlib import markers
 import numpy as np
 import pandas as pd
 import xarray as xr
-import matplotlib.pyplot as plt
-import psyplot.project as psy
-import iconarray
 import click
 from ipdb import set_trace
 import sys
 from pathlib import Path
 import os
-import warnings
-
-warnings.filterwarnings("ignore", message="Shapefile")
 
 # home-made functions
 from utils import get_min_max
@@ -27,8 +19,10 @@ from utils import ind_from_latlon
 from utils import get_poi
 from utils import n_sum_up_to
 from utils import parse_out_dir
+from utils import open_icon_ds
 from plotting import transect_hhl
 from plotting import transect_topo
+from plotting import mapplot_coord_surf
 
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
@@ -219,48 +213,6 @@ def info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify=False):
     print("***********************************************************")
 
 
-def mapplot_coord_surf(file, grid_file, out_dir, lev):
-
-    print(f"Plotting surface elevation of {file}.")
-    print(f"Corresponding grid file: {grid_file}.")
-
-    ds = iconarray.combine_grid_information(file, grid_file)
-
-    # get nlev, find name
-    try:
-        nlev = ds.HHL.values.shape[0]
-        name_height = "HHL"
-    except AttributeError:
-        nlev = ds.HEIGHT.values.shape[0]
-        name_height = "HEIGHT"
-    zz = nlev - lev
-
-    surf_map = ds.psy.plot.mapplot(
-        name=name_height,
-        xgrid=None,
-        ygrid=None,
-        # bounds=np.arange(0, 101, 5),
-        # norm=norm,
-        cticksize="small",
-        # cmap=cmap,
-        borders=True,
-        lakes=True,
-        rivers=True,
-        projection="robin",
-        # map_extent=[5.5, 11.0, 45.5, 48.0],
-        title=f"Elevation of {lev}. coordinate surface",
-        clabel="m asl",
-        z=zz,  # specify specific level
-    )
-
-    # user = os.getlogin()
-    # out_dir = Path(f"/scratch/{user}/vert_coord/figures")
-    # out_dir.mkdir(exist_ok=True)
-    out_name = Path(out_dir, f"altitude_{lev}_coordinate_surface.png")
-    plt.savefig(out_name)
-    print(f"Saved as: {out_name}")
-
-
 def plot_dz(dz, poi, model, exp, out_dir):
     """Plot dz vs altitude.
 
@@ -352,6 +304,11 @@ def plot_dz(dz, poi, model, exp, out_dir):
     type=str,
 )
 @click.option(
+    "--file2",
+    help="Second file for comparison.",
+    type=str,
+)
+@click.option(
     "--grid_file",
     default="/store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc",
     help="REQUIRED FOR ICON: Netcdf file containing grid information.",
@@ -402,6 +359,24 @@ def plot_dz(dz, poi, model, exp, out_dir):
     default=1,
 )
 @click.option(
+    "--radius",
+    help="Number of grid cells around location to be included in plot.",
+    type=int,
+    default=30,
+)
+@click.option(
+    "--vmin",
+    help="Minimum elevation.",
+    type=float,
+    default=0.0,
+)
+@click.option(
+    "--vmax",
+    help="Maximum elevation.",
+    type=float,
+    default=4500.0,
+)
+@click.option(
     "--plot_hhl",
     help="Plot vertical transect of vertical coordinate surfaces.",
     is_flag=True,
@@ -430,6 +405,7 @@ def plot_dz(dz, poi, model, exp, out_dir):
 )
 def evaluate_hhl(
     file,
+    file2,
     grid_file,
     model,
     config,
@@ -438,6 +414,9 @@ def evaluate_hhl(
     print_max_dzdc,
     plot_surf,
     lev,
+    radius,
+    vmin,
+    vmax,
     loc,
     plot_hhl,
     plot_topo,
@@ -450,82 +429,29 @@ def evaluate_hhl(
     out_dir = parse_out_dir(out_dir)
     print(out_dir)
 
-    # load constants file, retrieve relevant variables
-    # ds = xr.open_dataset(file).squeeze()
-
-    # merge grid information into dataset
-    ds = iconarray.combine_grid_information(file, grid_file)
-
-    if "icon" in model:
-        try:
-            hhl = ds.HEIGHT.values
-            lats = ds.clat_1.values
-            lons = ds.clon_1.values
-        except AttributeError:
-            try:
-                hhl = ds.HEIGHT.values
-                lats = ds.clat.values
-                lons = ds.clon.values
-            except AttributeError:
-                try:
-                    hhl = ds.HHL.values
-                    lats = ds.clat.values
-                    lons = ds.clon.values
-                except AttributeError:
-                    try:
-                        hhl = np.array([ds.topography_c.values])
-                        lats = ds.clat.values
-                        lons = ds.clon.values
-                    except AttributeError:
-                        print(
-                            "--- names for 3D height field, latitudes or longitudes unknown!"
-                        )
-                        print(f"--- check: {file}")
-                        sys.exit(0)
-
-        if max(lats) < 2:
-            lats = np.rad2deg(lats)
-            lons = np.rad2deg(lons)
-
-    elif "cosmo" in model:
-        hhl_3d = ds.HEIGHT.values
-        s1 = hhl_3d.shape[1]
-        s2 = hhl_3d.shape[2]
-        hhl = hhl_3d.reshape(hhl_3d.shape[0], s1 * s2)
-        lats = ds.lat_1.values.flatten()
-        lons = ds.lon_1.values.flatten()
-
-    else:
-        print("Model type unknown!")
-        sys.exit(1)
-
-    hsurf = hhl[-1, :]
-    dz = hhl[:-1, :] - hhl[1:, :]
-    # hfl = hhl[1:, :] + dz[:, :] / 2
-
-    # load grid file
-    ds_grid = xr.open_dataset(grid_file).squeeze()
-    neighbour_ind = ds_grid.neighbor_cell_index.values
-
-    # load points of interest
-    all_poi = get_poi(lats, lons)
-    if loc[0] == "all":
-        poi = all_poi
-    else:
-        poi = all_poi[list(loc)]
+    # routines require either the files, xarray datasets,
+    #  or numpy arrays of the retrieved variables
 
     if print_dz:
+        lats, lons, hhl, hsurf, dz = retrieve_vars(file, model)
+        poi = get_poi(lats, lons, loc)
         print("Printing dz...\n")
         info_dz(hsurf, poi, dz, lev)
 
     if print_hhl:
+        lats, lons, hhl, hsurf, dz = retrieve_vars(file, model)
+        poi = get_poi(lats, lons, loc)
         print("Printing hhl...\n")
         info_hhl(hhl, poi, lev)
 
     if print_max_dzdc:
+
         if "cosmo" in model:
             print("Not implemented for COSMO.")
             sys.exit()
+
+        lats, lons, hhl, hsurf, dz = retrieve_vars(file, model)
+        poi = get_poi(lats, lons, loc)
 
         print("Printing maximum elevation difference...\n")
         info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify)
@@ -533,15 +459,17 @@ def evaluate_hhl(
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
         if "icon" in model:
-            mapplot_coord_surf(file, grid_file, out_dir, lev)
+            ds = open_icon_ds(file, grid_file)
+            mapplot_coord_surf(ds, config, out_dir, lev, loc, radius, vmin, vmax)
         else:
             print(f"No mapplot available for {model}.")
 
-    if plot_hhl:
-        transect_hhl(hhl, neighbour_ind, poi, config, out_dir, lev)
+    # if plot_hhl:
+    #    transect_hhl(hhl, neighbour_ind, poi, config, out_dir, lev)
 
-    if plot_topo:
-        transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir, lev)
+    # if plot_topo:
+    #  neighbour_ind = ds_grid.neighbor_cell_index.values
+    #    transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir, lev)
 
 
 if __name__ == "__main__":
