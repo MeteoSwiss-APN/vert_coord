@@ -1,0 +1,1 @@
+python evaluate_hhl.py --model icon --file /scratch/e1000/meteoswiss/scratch/swester/experiments/losvec_case_studies/exp3/out/lfff00000000c.nc --grid_file /scratch/e1000/meteoswiss/scratch/swester/input_icon/grids/icon-1e_dev/ICON-1E_DOM01.nc --plot_hhl --config losvec
