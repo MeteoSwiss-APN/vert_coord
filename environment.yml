@@ -20,4 +20,4 @@ dependencies:
   - cartopy
   - ipykernel
   - pip:
-    - git+https://github.com/C2SM/iconarray@v0.1.23
+    - git+https://github.com/C2SM/iconarray@v0.2.0
