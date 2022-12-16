@@ -219,7 +219,7 @@ def info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify=False):
     print("***********************************************************")
 
 
-def mapplot_coord_surf(file, grid_file, lev):
+def mapplot_coord_surf(file, grid_file, out_dir, lev):
 
     print(f"Plotting surface elevation of {file}.")
     print(f"Corresponding grid file: {grid_file}.")
@@ -253,9 +253,9 @@ def mapplot_coord_surf(file, grid_file, lev):
         z=zz,  # specify specific level
     )
 
-    user = os.getlogin()
-    out_dir = Path(f"/scratch/{user}/vert_coord/figures")
-    out_dir.mkdir(exist_ok=True)
+    # user = os.getlogin()
+    # out_dir = Path(f"/scratch/{user}/vert_coord/figures")
+    # out_dir.mkdir(exist_ok=True)
     out_name = Path(out_dir, f"altitude_{lev}_coordinate_surface.png")
     plt.savefig(out_name)
     print(f"Saved as: {out_name}")
@@ -397,9 +397,9 @@ def plot_dz(dz, poi, model, exp, out_dir):
 )
 @click.option(
     "--lev",
-    help="Specify level, surface = 1.",
+    help="Specify (number of) level(s), surface = 1.",
     type=int,
-    default=12,
+    default=1,
 )
 @click.option(
     "--plot_hhl",
@@ -533,15 +533,15 @@ def evaluate_hhl(
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
         if "icon" in model:
-            mapplot_coord_surf(file, grid_file, lev)
+            mapplot_coord_surf(file, grid_file, out_dir, lev)
         else:
             print(f"No mapplot available for {model}.")
 
     if plot_hhl:
-        transect_hhl(hhl, neighbour_ind, poi, config, out_dir)
+        transect_hhl(hhl, neighbour_ind, poi, config, out_dir, lev)
 
     if plot_topo:
-        transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir)
+        transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir, lev)
 
 
 if __name__ == "__main__":

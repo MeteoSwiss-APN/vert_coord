@@ -9,16 +9,18 @@ import cartopy.crs as ccrs
 from utils import indices_transect
 
 
-def transect_hhl(hhl, neighbors, poi, config, out_dir):
+def transect_hhl(hhl, neighbors, poi, config, out_dir, n_levels):
 
     for location in poi:
         loc = poi[location]
 
         # retrieve indices of cells along 1 straight line
-        ind_line, ind_wrt_origin = indices_transect(loc.ind, neighbors)
+        ind_line, ind_wrt_origin = indices_transect(
+            loc.ind, neighbors, n_cells_se=15, n_cells_nw=15
+        )
 
         # create figure
-        fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+        fig, ax = plt.subplots(1, 1, figsize=(11, 5))
 
         # transect from A to B
         transect = hhl[:, ind_line]
@@ -27,8 +29,8 @@ def transect_hhl(hhl, neighbors, poi, config, out_dir):
         ax.plot(ind_wrt_origin, transect[-1, :], linewidth=2, color="k")
 
         # plot vertical coordinate surfaces above surface
-        l_colors = plt.cm.RdPu_r(np.linspace(0, 1, 19))
-        for i, level in enumerate(np.arange(2, 20)):
+        l_colors = plt.cm.cividis(np.linspace(0, 1, n_levels))
+        for i, level in enumerate(np.arange(2, n_levels + 1)):
             ax.plot(ind_wrt_origin, transect[-level, :], color=l_colors[i])
 
         # indicate location of poi
@@ -45,14 +47,16 @@ def transect_hhl(hhl, neighbors, poi, config, out_dir):
         print(f"Saved as: {out_name}")
 
 
-def transect_topo(hhl, neighbors, ds, poi, config, out_dir):
+def transect_topo(hhl, neighbors, ds, poi, config, out_dir, level=1):
 
     for location in poi:
         loc = poi[location]
-        surf = hhl[-1, :]
+        surf = hhl[-level, :]
 
         # retrieve indices of cells along 1 straight line
-        ind_line, ind_wrt_origin = indices_transect(loc.ind, neighbors)
+        ind_line, ind_wrt_origin = indices_transect(
+            loc.ind, neighbors, n_cells_se=15, n_cells_nw=15
+        )
 
         # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
         # fig, ax2 = plt.subplots(1, 1, figsize=(10, 5))
