@@ -7,6 +7,7 @@
 import numpy as np
 import pandas as pd
 import iconarray
+import xarray as xr
 from ipdb import set_trace
 import sys
 from pathlib import Path
@@ -44,6 +45,7 @@ def ind_from_latlon(lats, lons, lat, lon, verbose=False):
         np.sqrt((lats[i] - lat) ** 2 + (lons[i] - lon) ** 2) for i in range(len(lats))
     ]
     ind = np.where(dist == np.min(dist))[0][0]
+    set_trace()
 
     if verbose:
         print(f"Closest ind: {ind}")
@@ -51,6 +53,30 @@ def ind_from_latlon(lats, lons, lat, lon, verbose=False):
         print(f" Given lon: {lon:.3f} vs found lon: {lons[ind]:.3f}")
 
     return ind
+
+
+def ind_from_latlon_remapped(lats, lons, lat, lon, verbose=False):
+    """Find the nearest neighbouring index to given location.
+
+    Args:
+        lats (1d array):            Latitude grid
+        lons (1d array):            Longitude grid
+        lat (float):                Latitude of location
+        lon (float):                Longitude of location
+        verbose (bool, optional):   Print information. Defaults to False.
+
+    Returns:
+        int     Index of nearest grid point.
+    """
+    ind_lat = np.argmin(np.abs(lats - lat))
+    ind_lon = np.argmin(np.abs(lons - lon))
+
+    if verbose:
+        print(f"Closest ind: {ind_lat}, {ind_lon}")
+        print(f" Given lat: {lat:.3f} vs found lat: {lats[ind_lat]:.3f}")
+        print(f" Given lon: {lon:.3f} vs found lon: {lons[ind_lon]:.3f}")
+
+    return ind_lat, ind_lon
 
 
 def ind_from_latlon_regular(lats, lons, lat, lon, verbose=False):
@@ -83,7 +109,7 @@ def ind_from_latlon_regular(lats, lons, lat, lon, verbose=False):
     return ind_lat, ind_lon
 
 
-def get_poi(loc, lats=None, lons=None):
+def get_poi(loc, lats=None, lons=None, model="icon"):
     """Points of interest for analysis.
 
     Args:
@@ -172,9 +198,16 @@ def get_poi(loc, lats=None, lons=None):
         poi = all_poi[list(loc)]
 
     # indices of specific locations
-    if None not in (lats, lons):
+    if isinstance(lats, np.ndarray) and isinstance(lons, np.ndarray):
+        if "icon_regular" in model:
+            retrieve_ind = ind_from_latlon_remapped
+        elif "icon" in model:
+            retrieve_ind = ind_from_latlon
+        elif "cosmo" in model:
+            retrieve_ind = ind_from_latlon_regular
+
         for name, col in poi.items():
-            col.ind = ind_from_latlon(lats, lons, col.lat, col.lon)
+            col.ind = retrieve_ind(lats, lons, col.lat, col.lon)
 
     return poi
 
@@ -262,7 +295,41 @@ def indices_transect(
     return ind_line, ind_wrt_origin
 
 
-def retrieve_vars(file_str, model):
+def retrieve_lats_lons_hhl_icon(ds):
+
+    try:
+        hhl = ds.HEIGHT.values
+        lats = ds.clat_1.values
+        lons = ds.clon_1.values
+    except AttributeError:
+        try:
+            hhl = ds.HEIGHT.values
+            lats = ds.clat.values
+            lons = ds.clon.values
+        except AttributeError:
+            try:
+                hhl = ds.HHL.values
+                lats = ds.clat.values
+                lons = ds.clon.values
+            except AttributeError:
+                try:
+                    hhl = np.array([ds.topography_c.values])
+                    lats = ds.clat.values
+                    lons = ds.clon.values
+                except AttributeError:
+                    print(
+                        "--- names for 3D height field, latitudes or longitudes unknown!"
+                    )
+                    print(f"--- check: {file}")
+                    sys.exit(0)
+
+    # convert from radians to degrees if necessary
+    if max(lats) < 2:
+        lats = np.rad2deg(lats)
+        lons = np.rad2deg(lons)
+
+
+def retrieve_vars_print(file_str, model):
 
     try:
         ds = xr.open_dataset(file_str)
@@ -270,35 +337,7 @@ def retrieve_vars(file_str, model):
         print(f"!! File does not exist: {file_str}")
 
     if "icon" in model:
-        try:
-            hhl = ds.HEIGHT.values
-            lats = ds.clat_1.values
-            lons = ds.clon_1.values
-        except AttributeError:
-            try:
-                hhl = ds.HEIGHT.values
-                lats = ds.clat.values
-                lons = ds.clon.values
-            except AttributeError:
-                try:
-                    hhl = ds.HHL.values
-                    lats = ds.clat.values
-                    lons = ds.clon.values
-                except AttributeError:
-                    try:
-                        hhl = np.array([ds.topography_c.values])
-                        lats = ds.clat.values
-                        lons = ds.clon.values
-                    except AttributeError:
-                        print(
-                            "--- names for 3D height field, latitudes or longitudes unknown!"
-                        )
-                        print(f"--- check: {file}")
-                        sys.exit(0)
-
-        if max(lats) < 2:
-            lats = np.rad2deg(lats)
-            lons = np.rad2deg(lons)
+        lats, lons, hhl = retrieve_lats_lons_hhl_icon(ds)
 
     elif "cosmo" in model:
         hhl_3d = ds.HEIGHT.values
@@ -320,3 +359,15 @@ def retrieve_vars(file_str, model):
 
 def open_icon_ds(file, grid_file):
     return iconarray.combine_grid_information(file, grid_file)
+
+
+def open_icon_regular(file):
+    return xr.open_dataset(file)
+
+
+def retrieve_vars_icon_regular(ds):
+    lats = ds.lat.values
+    lons = ds.lon.values
+    hhl = ds.HSURF.values
+
+    return lats, lons, hhl
