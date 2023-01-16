@@ -20,9 +20,10 @@ from utils import get_poi
 from utils import n_sum_up_to
 from utils import parse_out_dir
 from utils import open_icon_ds
-from utils import open_icon_regular
+from utils import open_ds_regular
 from utils import retrieve_vars_print
 from utils import retrieve_vars_icon_regular
+from utils import retrieve_vars_cosmo_regular
 from printing import info_minmax
 from printing import info_hhl
 from printing import info_dz
@@ -109,7 +110,7 @@ from plotting import mapplot_coord_surf
     "--radius",
     help="SPECIFY: Number of grid cells around location to be included in plot.",
     type=int,
-    default=20,
+    default=30,
 )
 @click.option(
     "--vmin",
@@ -177,13 +178,13 @@ def evaluate_hhl(
 
     if print_dz:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(lats, lons, loc)
+        poi = get_poi(loc, lats, lons)
         print("Printing dz...\n")
         info_dz(hsurf, poi, dz, lev)
 
     if print_hhl:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(lats, lons, loc)
+        poi = get_poi(loc, lats, lons)
         print("Printing hhl...\n")
         info_hhl(hhl, poi, lev)
 
@@ -194,7 +195,7 @@ def evaluate_hhl(
             sys.exit()
 
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(lats, lons, loc)
+        poi = get_poi(loc, lats, lons)
 
         print("Printing maximum elevation difference...\n")
         info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify)
@@ -209,8 +210,8 @@ def evaluate_hhl(
 
     if plot_hhl:
         if "icon" in model:
-            ds = open_icon_ds(file, grid_file)
-            transect_hhl(ds, loc, config, out_dir, lev)
+            ds, ds_grid = open_icon_ds(file, grid_file)
+            transect_hhl(ds, ds_grid, loc, config, out_dir, lev)
         else:
             print(f"No mapplot available for {model}.")
 
@@ -218,7 +219,7 @@ def evaluate_hhl(
 
     if plot_topo:
         if "regular" in model:
-            ds = open_icon_regular(file)
+            ds = open_ds_regular(file)
             lats, lons, hsurf = retrieve_vars_icon_regular(ds)
             poi = get_poi(loc, lats, lons, model="icon_regular")
             transect_topo_regular(lats, lons, hsurf, poi, radius, config, out_dir)
@@ -227,6 +228,11 @@ def evaluate_hhl(
             sys.exit()
             neighbour_ind = ds_grid.neighbor_cell_index.values
             transect_topo(hhl, neighbour_ind, ds, poi, config, out_dir, lev)
+        elif "cosmo" in model:
+            ds = open_ds_regular(file)
+            lats, lons, hsurf = retrieve_vars_cosmo_regular(ds)
+            poi = get_poi(loc, lats, lons, model=model)
+            transect_topo_regular(lats, lons, hsurf, poi, radius, config, out_dir)
         else:
             print("Not sure which model to take.")
 

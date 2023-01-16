@@ -11,12 +11,13 @@ warnings.filterwarnings("ignore", message="Shapefile")
 
 from utils import indices_transect
 from utils import get_poi
+from utils import retrieve_lats_lons_hhl_icon
 
 
-def transect_hhl(ds, loc, config, out_dir, lev):
+def transect_hhl(ds, ds_grid, loc, config, out_dir, lev):
 
     lats, lons, hhl = retrieve_lats_lons_hhl_icon(ds)
-    neighbs = ds.neighbor_cell_index.values
+    neighbs = ds_grid.neighbor_cell_index.values
     poi = get_poi(loc, lats, lons)
 
     for location in poi:
