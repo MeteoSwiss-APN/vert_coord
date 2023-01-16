@@ -45,7 +45,6 @@ def ind_from_latlon(lats, lons, lat, lon, verbose=False):
         np.sqrt((lats[i] - lat) ** 2 + (lons[i] - lon) ** 2) for i in range(len(lats))
     ]
     ind = np.where(dist == np.min(dist))[0][0]
-    set_trace()
 
     if verbose:
         print(f"Closest ind: {ind}")
@@ -133,6 +132,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
             "cic",
             "loc",
             "ste",
+            "lau",
         ],
         index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
@@ -147,6 +147,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cic"].long_name = "Cicognola"
     all_poi["loc"].long_name = "Locarno"
     all_poi["ste"].long_name = "Steffisburg"
+    all_poi["lau"].long_name = "Lausanne"
 
     all_poi["mtblanc"].lat = 45.83267
     all_poi["zrh"].lat = 47.46218
@@ -158,6 +159,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cic"].lat = 45.72350
     all_poi["loc"].lat = 46.16961
     all_poi["ste"].lat = 46.77884
+    all_poi["lau"].lat = 46.53447
 
     all_poi["mtblanc"].lon = 6.86437
     all_poi["zrh"].lon = 8.54458
@@ -169,6 +171,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cic"].lon = 8.61444
     all_poi["loc"].lon = 8.77102
     all_poi["ste"].lon = 7.63525
+    all_poi["lau"].lon = 6.58822
 
     all_poi["mtblanc"].h_real = 4808.0
     all_poi["zrh"].h_real = 422.0
@@ -180,6 +183,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cic"].h_real = 197.0
     all_poi["loc"].h_real = 202.0
     all_poi["ste"].h_real = 586.0
+    all_poi["lau"].h_real = 415.0
 
     all_poi["mtblanc"].left_to_right = False
     all_poi["zrh"].left_to_right = None
@@ -191,6 +195,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cic"].left_to_right = True
     all_poi["loc"].left_to_right = None
     all_poi["ste"].left_to_right = False
+    all_poi["lau"].left_to_right = False
 
     if loc[0] == "all":
         poi = all_poi
@@ -320,13 +325,14 @@ def retrieve_lats_lons_hhl_icon(ds):
                     print(
                         "--- names for 3D height field, latitudes or longitudes unknown!"
                     )
-                    print(f"--- check: {file}")
                     sys.exit(0)
 
     # convert from radians to degrees if necessary
     if max(lats) < 2:
         lats = np.rad2deg(lats)
         lons = np.rad2deg(lons)
+
+    return lats, lons, hhl
 
 
 def retrieve_vars_print(file_str, model):
@@ -358,10 +364,13 @@ def retrieve_vars_print(file_str, model):
 
 
 def open_icon_ds(file, grid_file):
-    return iconarray.combine_grid_information(file, grid_file)
+    ds = iconarray.combine_grid_information(file, grid_file)
+    ds_grid = xr.open_dataset(grid_file)
+
+    return ds, ds_grid
 
 
-def open_icon_regular(file):
+def open_ds_regular(file):
     return xr.open_dataset(file)
 
 
@@ -371,3 +380,11 @@ def retrieve_vars_icon_regular(ds):
     hhl = ds.HSURF.values
 
     return lats, lons, hhl
+
+
+def retrieve_vars_cosmo_regular(ds):
+    lats = ds.lat_1.values
+    lons = ds.lon_1.values
+    hsurf = ds.HSURF.values
+
+    return lats, lons, hsurf
