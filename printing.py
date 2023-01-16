@@ -2,6 +2,9 @@ import numpy as np
 import iconarray
 from ipdb import set_trace
 
+from utils import get_min_max
+from utils import n_sum_up_to
+
 
 def info_minmax(hsurf):
     """Print information elevation of heighest and lowest grid cell.

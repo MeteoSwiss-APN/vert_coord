@@ -1,1 +1,8 @@
-python evaluate_hhl.py --model icon --file /scratch/e1000/meteoswiss/scratch/swester/experiments/losvec_case_studies/exp3/out/lfff00000000c.nc --grid_file /scratch/e1000/meteoswiss/scratch/swester/input_icon/grids/icon-1e_dev/ICON-1E_DOM01.nc --plot_hhl --config losvec
+# plotting vertical transects of hhl
+python evaluate_hhl.py --model icon --file /scratch/e1000/meteoswiss/scratch/swester/experiments/losvec_case_studies/exp3/out/lfff00000000c.nc --grid_file /scratch/e1000/meteoswiss/scratch/swester/input_icon/grids/icon-1e_dev/ICON-1E_DOM01.nc --plot_hhl --lev 25 --config losvec 
+
+# plotting orography and slice for icon and cosmo
+python evaluate_hhl.py --file /store/s83/swester/vert_coord_files/topo_tests_regular_0001/niter_100.nc --config reg_niter100 --plot_topo --model icon_regular --radius 30 --loc mtblanc --loc zrh --loc pay --loc visp --loc ulr --loc duf --loc ste
+python evaluate_hhl.py --model cosmo --file /store/s83/swester/grids/const_modinterim.nc --config cosmo --plot_topo
+
+
