@@ -6,3 +6,4 @@ python evaluate_hhl.py --file /store/s83/swester/vert_coord_files/topo_tests_reg
 python evaluate_hhl.py --model cosmo --file /store/s83/swester/grids/const_modinterim.nc --config cosmo --plot_topo
 
 
+python evaluate_hhl.py --file /scratch/e1000/meteoswiss/scratch/swester/experiments/losvec_case_studies/exp3/out_niter4_breaks/lfff00000000c.nc --print_dz --lev 25

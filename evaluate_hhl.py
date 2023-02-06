@@ -32,6 +32,7 @@ from plotting import transect_hhl
 from plotting import transect_topo
 from plotting import transect_topo_regular
 from plotting import mapplot_coord_surf
+from plotting import profile_dz
 
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
@@ -58,7 +59,7 @@ from plotting import mapplot_coord_surf
 )
 @click.option(
     "--grid_file",
-    default="/store/s83/swester/vert_coord_files/icon-1-alps/alps_DOM01.nc",
+    default="/scratch/e1000/meteoswiss/scratch/swester/input_icon/grids/icon-1e_dev/ICON-1E_DOM01.nc",
     help="REQUIRED FOR ICON: Netcdf file containing grid information.",
     type=str,
 )
@@ -139,6 +140,13 @@ from plotting import mapplot_coord_surf
     type=bool,
 )
 @click.option(
+    "--plot_ddz",
+    help="SELECT: Plot d delta_z / dz.",
+    is_flag=True,
+    default=False,
+    type=bool,
+)
+@click.option(
     "--out_dir",
     help="SPECIFY: Change output directory for figures.",
     default="figures",
@@ -168,6 +176,7 @@ def evaluate_hhl(
     loc,
     plot_hhl,
     plot_topo,
+    plot_ddz,
     out_dir,
     verify,
 ):
@@ -181,6 +190,12 @@ def evaluate_hhl(
         poi = get_poi(loc, lats, lons)
         print("Printing dz...\n")
         info_dz(hsurf, poi, dz, lev)
+
+    # if print_min_dz:
+    #    lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
+    #    poi = get_poi(loc, lats, lons)
+    #    print("Printing min dz...\n")
+    #    info_min_dz(hsurf, poi, dz, lev)
 
     if print_hhl:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
@@ -203,7 +218,7 @@ def evaluate_hhl(
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
         if "icon" in model:
-            ds = open_icon_ds(file, grid_file)
+            ds, ds_grid = open_icon_ds(file, grid_file)
             mapplot_coord_surf(ds, config, out_dir, lev, loc, radius, vmin, vmax)
         else:
             print(f"No mapplot available for {model}.")
@@ -216,6 +231,12 @@ def evaluate_hhl(
             print(f"No mapplot available for {model}.")
 
     #    transect_hhl(hhl, neighbour_ind, poi, config, out_dir, lev)
+
+    if plot_ddz:
+        lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
+        poi = get_poi(loc, lats, lons)
+        print("Plotting d delta_z / dz...\n")
+        profile_dz(dz, hhl, poi, loc, config, out_dir)
 
     if plot_topo:
         if "regular" in model:

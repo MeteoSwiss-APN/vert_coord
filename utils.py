@@ -133,6 +133,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
             "loc",
             "ste",
             "lau",
+            "cat",
+            "ruc",
         ],
         index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
@@ -148,6 +150,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["loc"].long_name = "Locarno"
     all_poi["ste"].long_name = "Steffisburg"
     all_poi["lau"].long_name = "Lausanne"
+    all_poi["cat"].long_name = "Catogne"
+    all_poi["ruc"].long_name = "Ruchen"
 
     all_poi["mtblanc"].lat = 45.83267
     all_poi["zrh"].lat = 47.46218
@@ -160,6 +164,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["loc"].lat = 46.16961
     all_poi["ste"].lat = 46.77884
     all_poi["lau"].lat = 46.53447
+    all_poi["cat"].lat = 46.0699
+    all_poi["ruc"].lat = 47.01078
 
     all_poi["mtblanc"].lon = 6.86437
     all_poi["zrh"].lon = 8.54458
@@ -172,6 +178,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["loc"].lon = 8.77102
     all_poi["ste"].lon = 7.63525
     all_poi["lau"].lon = 6.58822
+    all_poi["cat"].lon = 7.1317
+    all_poi["ruc"].lon = 9.00086
 
     all_poi["mtblanc"].h_real = 4808.0
     all_poi["zrh"].h_real = 422.0
@@ -184,6 +192,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["loc"].h_real = 202.0
     all_poi["ste"].h_real = 586.0
     all_poi["lau"].h_real = 415.0
+    all_poi["cat"].h_real = 1160.0
+    all_poi["ruc"].h_real = 2855.0
 
     all_poi["mtblanc"].left_to_right = False
     all_poi["zrh"].left_to_right = None
@@ -196,6 +206,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["loc"].left_to_right = None
     all_poi["ste"].left_to_right = False
     all_poi["lau"].left_to_right = False
+    all_poi["cat"].left_to_right = False
+    all_poi["ruc"].left_to_right = False
 
     if loc[0] == "all":
         poi = all_poi

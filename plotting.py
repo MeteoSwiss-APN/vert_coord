@@ -196,9 +196,24 @@ def mapplot_coord_surf(ds, config, out_dir, lev, loc, radius, vmin, vmax):
             print(f"Saved as: {out_name}")
 
 
-def plot_dz(dz, poi, model, exp, out_dir):
-    print("Needs re-implementation first!")
-    return
+def profile_dz(dz, hhl, poi, loc, config, out_dir):
+    for location in poi:
+        loc = poi[location]
+
+        fig, ax = plt.subplots(1, 1, figsize=(5, 7))
+
+        ax.plot(dz[:, loc.ind], hhl[1:, loc.ind])
+
+        # plot labelling
+        ax.set_title(f"delta_z at {loc.long_name}")
+        ax.set_xlabel(f"Level thickness [m]")
+        ax.set_ylabel(f"Altitude [masl]")
+
+        # save
+        out_name = Path(out_dir, f"ddz_{location}_{config}.png")
+        plt.tight_layout()
+        plt.savefig(out_name, dpi=200)
+        print(f"Saved as: {out_name}")
 
 
 #    """Plot dz vs altitude.
