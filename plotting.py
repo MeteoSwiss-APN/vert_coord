@@ -14,11 +14,13 @@ from utils import get_poi
 from utils import retrieve_lats_lons_hhl_icon
 
 
-def transect_hhl(ds, ds_grid, loc, config, out_dir, lev):
+def transect_hhl(ds, ds_grid, poi, loc, config, out_dir, lev):
 
     lats, lons, hhl = retrieve_lats_lons_hhl_icon(ds)
     neighbs = ds_grid.neighbor_cell_index.values
-    poi = get_poi(loc, lats, lons)
+
+    if poi.empty:
+        poi = get_poi(loc, lats, lons)
 
     for location in poi:
         loc = poi[location]
@@ -200,17 +202,39 @@ def profile_dz(dz, hhl, poi, loc, config, out_dir):
     for location in poi:
         loc = poi[location]
 
-        fig, ax = plt.subplots(1, 1, figsize=(5, 7))
+        fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+        n_levels = dz.shape[0]
 
-        ax.plot(dz[:, loc.ind], hhl[1:, loc.ind])
+        ax.plot(dz[:, loc.ind], np.arange(n_levels, 0, -1))
 
         # plot labelling
         ax.set_title(f"delta_z at {loc.long_name}")
         ax.set_xlabel(f"Level thickness [m]")
-        ax.set_ylabel(f"Altitude [masl]")
+        ax.set_ylabel(f"N of level above surface")
 
         # save
         out_name = Path(out_dir, f"ddz_{location}_{config}.png")
+        plt.tight_layout()
+        plt.savefig(out_name, dpi=200)
+        print(f"Saved as: {out_name}")
+
+
+def profile_u(u_wind, poi, loc, config, out_dir):
+    for location in poi:
+        loc = poi[location]
+
+        fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+        n_levels = u_wind.shape[0]
+
+        ax.plot(u_wind[:, loc.ind], np.arange(n_levels, 0, -1))
+
+        # plot labelling
+        ax.set_title(f"U wind at {loc.long_name}")
+        ax.set_xlabel(f"Wind speed [m/s]")
+        ax.set_ylabel(f"N of level above surface")
+
+        # save
+        out_name = Path(out_dir, f"u-wind_{location}_{config}.png")
         plt.tight_layout()
         plt.savefig(out_name, dpi=200)
         print(f"Saved as: {out_name}")

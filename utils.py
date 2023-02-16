@@ -120,6 +120,8 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
         pd dataframe
 
     """
+
+    print("--- Retrieving points of interest")
     all_poi = pd.DataFrame(
         columns=[
             "mtblanc",
@@ -224,6 +226,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
             retrieve_ind = ind_from_latlon_regular
 
         for name, col in poi.items():
+            print(f"---  {name}")
             col.ind = retrieve_ind(lats, lons, col.lat, col.lon)
 
     return poi
@@ -373,6 +376,39 @@ def retrieve_vars_print(file_str, model):
     dz = hhl[:-1, :] - hhl[1:, :]
 
     return lats, lons, hhl, hsurf, dz
+
+
+def retrieve_lats_lons_icon(ds):
+    try:
+        lats = ds.clat_1.values
+        lons = ds.clon_1.values
+    except AttributeError:
+        try:
+            lats = ds.clat.values
+            lons = ds.clon.values
+        except AttributeError:
+            print("Name of latitude and longitude unknown!")
+            sys.exit()
+
+    # convert from radians to degrees if necessary
+    if max(lats) < 2:
+        lats = np.rad2deg(lats)
+        lons = np.rad2deg(lons)
+
+    return lats, lons
+
+
+def retrieve_vars_icon_fcst_u(file):
+
+    try:
+        ds = xr.open_dataset(file).squeeze()
+    except FileNotFoundError:
+        print(f"!! File does not exist: {file_str}")
+
+    lats, lons = retrieve_lats_lons_icon(ds)
+    u_wind = ds["U"].values
+
+    return lats, lons, u_wind
 
 
 def open_icon_ds(file, grid_file):

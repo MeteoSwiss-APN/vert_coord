@@ -180,6 +180,8 @@ def info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify=False):
     print("\n***********************************************************")
     print(f"--- Maximum dz between 2 adjacent grid cells on level {lev}:")
     print(f"    {max_dzdc:.2f}")
+    print(f"--- At altitude of:")
+    print(f"    {surf[max_ii]:.2f}")
     print(f"--- location:")
     print(f"    {lats[max_ii]:.3f}, {lons[max_ii]:.3f}")
     print("\n***********************************************************\n")

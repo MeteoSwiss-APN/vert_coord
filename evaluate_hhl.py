@@ -23,6 +23,7 @@ from utils import open_icon_ds
 from utils import open_ds_regular
 from utils import retrieve_vars_print
 from utils import retrieve_vars_icon_regular
+from utils import retrieve_vars_icon_fcst_u
 from utils import retrieve_vars_cosmo_regular
 from printing import info_minmax
 from printing import info_hhl
@@ -33,6 +34,7 @@ from plotting import transect_topo
 from plotting import transect_topo_regular
 from plotting import mapplot_coord_surf
 from plotting import profile_dz
+from plotting import profile_u
 
 # COSMO-1:
 # python evaluate_hhl.py --print_dz --model cosmo-1
@@ -103,7 +105,7 @@ from plotting import profile_dz
 )
 @click.option(
     "--lev",
-    help="SPECIFY: Index of level from buttom upwards, surface = 1.",
+    help="SPECIFY: Index of level from surface upwards, surface = 1.",
     type=int,
     default=1,
 )
@@ -147,6 +149,13 @@ from plotting import profile_dz
     type=bool,
 )
 @click.option(
+    "--plot_u",
+    help="SELECT: Plot vertical profile of U.",
+    is_flag=True,
+    default=False,
+    type=bool,
+)
+@click.option(
     "--out_dir",
     help="SPECIFY: Change output directory for figures.",
     default="figures",
@@ -177,6 +186,7 @@ def evaluate_hhl(
     plot_hhl,
     plot_topo,
     plot_ddz,
+    plot_u,
     out_dir,
     verify,
 ):
@@ -185,9 +195,16 @@ def evaluate_hhl(
 
     out_dir = parse_out_dir(out_dir)
 
+    poi = pd.DataFrame()
+
+    #############
+    # A) PRINTING
+    #############
+
     if print_dz:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(loc, lats, lons)
+        if poi.empty:
+            poi = get_poi(loc, lats, lons)
         print("Printing dz...\n")
         info_dz(hsurf, poi, dz, lev)
 
@@ -199,7 +216,8 @@ def evaluate_hhl(
 
     if print_hhl:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(loc, lats, lons)
+        if poi.empty:
+            poi = get_poi(loc, lats, lons)
         print("Printing hhl...\n")
         info_hhl(hhl, poi, lev)
 
@@ -210,10 +228,15 @@ def evaluate_hhl(
             sys.exit()
 
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(loc, lats, lons)
+        if poi.empty:
+            poi = get_poi(loc, lats, lons)
 
         print("Printing maximum elevation difference...\n")
         info_max_dzdc(hhl, grid_file, poi, lev, lats, lons, verify)
+
+    #############
+    # B) PLOTTING
+    #############
 
     if plot_surf:
         print("Plotting vertical coordinate surface...\n")
@@ -226,7 +249,7 @@ def evaluate_hhl(
     if plot_hhl:
         if "icon" in model:
             ds, ds_grid = open_icon_ds(file, grid_file)
-            transect_hhl(ds, ds_grid, loc, config, out_dir, lev)
+            transect_hhl(ds, ds_grid, poi, loc, config, out_dir, lev)
         else:
             print(f"No mapplot available for {model}.")
 
@@ -234,15 +257,24 @@ def evaluate_hhl(
 
     if plot_ddz:
         lats, lons, hhl, hsurf, dz = retrieve_vars_print(file, model)
-        poi = get_poi(loc, lats, lons)
+        if poi.empty:
+            poi = get_poi(loc, lats, lons)
         print("Plotting d delta_z / dz...\n")
         profile_dz(dz, hhl, poi, loc, config, out_dir)
+
+    if plot_u:
+        lats, lons, u_wind = retrieve_vars_icon_fcst_u(file)
+        if poi.empty:
+            poi = get_poi(loc, lats, lons)
+        print("Plotting U-profile...\n")
+        profile_u(u_wind, poi, loc, config, out_dir)
 
     if plot_topo:
         if "regular" in model:
             ds = open_ds_regular(file)
             lats, lons, hsurf = retrieve_vars_icon_regular(ds)
-            poi = get_poi(loc, lats, lons, model="icon_regular")
+            if poi.empty:
+                poi = get_poi(loc, lats, lons, model="icon_regular")
             transect_topo_regular(lats, lons, hsurf, poi, radius, config, out_dir)
         elif "icon" in model:
             print("first re-integrate")
@@ -252,7 +284,8 @@ def evaluate_hhl(
         elif "cosmo" in model:
             ds = open_ds_regular(file)
             lats, lons, hsurf = retrieve_vars_cosmo_regular(ds)
-            poi = get_poi(loc, lats, lons, model=model)
+            if poi.empty:
+                poi = get_poi(loc, lats, lons, model=model)
             transect_topo_regular(lats, lons, hsurf, poi, radius, config, out_dir)
         else:
             print("Not sure which model to take.")
