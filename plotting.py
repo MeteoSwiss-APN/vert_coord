@@ -205,7 +205,7 @@ def profile_dz(dz, hhl, poi, loc, config, out_dir):
         fig, ax = plt.subplots(1, 1, figsize=(7, 5))
         n_levels = dz.shape[0]
 
-        ax.plot(dz[:, loc.ind], np.arange(n_levels, 0, -1))
+        ax.plot(dz[:, loc.ind], np.arange(n_levels, 0, -1), marker="o", markersize=2)
 
         # plot labelling
         ax.set_title(f"delta_z at {loc.long_name}")
