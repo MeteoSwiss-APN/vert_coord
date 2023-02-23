@@ -137,6 +137,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
             "lau",
             "cat",
             "ruc",
+            "gos",
         ],
         index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
@@ -154,6 +155,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["lau"].long_name = "Lausanne"
     all_poi["cat"].long_name = "Catogne"
     all_poi["ruc"].long_name = "Ruchen"
+    all_poi["gos"].long_name = "Gosaldo"
 
     all_poi["mtblanc"].lat = 45.83267
     all_poi["zrh"].lat = 47.46218
@@ -168,6 +170,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["lau"].lat = 46.53447
     all_poi["cat"].lat = 46.0699
     all_poi["ruc"].lat = 47.01078
+    all_poi["gos"].lat = 46.22
 
     all_poi["mtblanc"].lon = 6.86437
     all_poi["zrh"].lon = 8.54458
@@ -182,6 +185,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["lau"].lon = 6.58822
     all_poi["cat"].lon = 7.1317
     all_poi["ruc"].lon = 9.00086
+    all_poi["gos"].lon = 12.02
 
     all_poi["mtblanc"].h_real = 4808.0
     all_poi["zrh"].h_real = 422.0
@@ -196,6 +200,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["lau"].h_real = 415.0
     all_poi["cat"].h_real = 1160.0
     all_poi["ruc"].h_real = 2855.0
+    all_poi["gos"].h_real = 1700.0
 
     all_poi["mtblanc"].left_to_right = False
     all_poi["zrh"].left_to_right = None
@@ -210,6 +215,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["lau"].left_to_right = False
     all_poi["cat"].left_to_right = False
     all_poi["ruc"].left_to_right = False
+    all_poi["gos"].left_to_right = None
 
     if loc[0] == "all":
         poi = all_poi
@@ -353,7 +359,7 @@ def retrieve_lats_lons_hhl_icon(ds):
 def retrieve_vars_print(file_str, model):
 
     try:
-        ds = xr.open_dataset(file_str)
+        ds = xr.open_dataset(file_str).squeeze()
     except FileNotFoundError:
         print(f"!! File does not exist: {file_str}")
 
