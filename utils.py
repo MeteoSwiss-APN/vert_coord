@@ -108,6 +108,26 @@ def ind_from_latlon_regular(lats, lons, lat, lon, verbose=False):
     return ind_lat, ind_lon
 
 
+def get_rot_latlon_from_geo_latlon(lat, lon, lat_pole, lon_pole):
+    try:
+        import cartopy.crs as ccrs
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError('Optional dependency cartopy is missing.')
+
+    if isinstance(lat, (int, float)):
+        lat = [lat]
+    if isinstance(lon, (int, float)):
+        lon = [lon]
+    lon = np.array(lon)
+    lat = np.array(lat)
+
+    target_proj = ccrs.RotatedGeodetic(
+            pole_longitude=lon_pole, pole_latitude=lat_pole)
+    src_proj = ccrs.Geodetic()
+    res = target_proj.transform_points(x=lon, y=lat, src_crs=src_proj)
+    lon, lat, _ = res[0]
+    return lat, lon
+
 def get_poi(loc, lats=None, lons=None, model="icon"):
     """Points of interest for analysis.
 

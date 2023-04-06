@@ -17,10 +17,14 @@ f_cosmo = "/store/s83/swester/grids/const_modinterim.nc"
 out_dir = "/scratch/e1000/meteoswiss/scratch/swester/vert_coord/oro_aster_model"
 
 # domains
-latmin = 46.4
-latmax = 46.8
-lonmin = 7.7
-lonmax = 8.2
+#latmin = 46.4
+#latmax = 46.8
+#lonmin = 7.7
+#lonmax = 8.2
+latmin = 46.45
+latmax = 46.75
+lonmin = 7.9
+lonmax = 8.3
 
 levels = np.arange(400, 4200, 200)
 d_aster = xr.open_dataset(f_aster).squeeze()
@@ -49,6 +53,7 @@ aster = ax_a.contourf(
     oro_aster_zoom,
     cmap="terrain",
     levels=levels,
+    #algorithm='serial'
 )
 
 ax_a.plot(7.85, 46.68, "o", color="r", markersize=8)
