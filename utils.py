@@ -112,7 +112,7 @@ def get_rot_latlon_from_geo_latlon(lat, lon, lat_pole, lon_pole):
     try:
         import cartopy.crs as ccrs
     except ModuleNotFoundError:
-        raise ModuleNotFoundError('Optional dependency cartopy is missing.')
+        raise ModuleNotFoundError("Optional dependency cartopy is missing.")
 
     if isinstance(lat, (int, float)):
         lat = [lat]
@@ -121,12 +121,12 @@ def get_rot_latlon_from_geo_latlon(lat, lon, lat_pole, lon_pole):
     lon = np.array(lon)
     lat = np.array(lat)
 
-    target_proj = ccrs.RotatedGeodetic(
-            pole_longitude=lon_pole, pole_latitude=lat_pole)
+    target_proj = ccrs.RotatedGeodetic(pole_longitude=lon_pole, pole_latitude=lat_pole)
     src_proj = ccrs.Geodetic()
     res = target_proj.transform_points(x=lon, y=lat, src_crs=src_proj)
     lon, lat, _ = res[0]
     return lat, lon
+
 
 def get_poi(loc, lats=None, lons=None, model="icon"):
     """Points of interest for analysis.
@@ -158,6 +158,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
             "cat",
             "ruc",
             "gos",
+            "mrp",
         ],
         index=["long_name", "ind", "h_real", "lat", "lon", "left_to_right"],
     )
@@ -176,6 +177,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cat"].long_name = "Catogne"
     all_poi["ruc"].long_name = "Ruchen"
     all_poi["gos"].long_name = "Gosaldo"
+    all_poi["mrp"].long_name = "Monte Rosa-Plattje"
 
     all_poi["mtblanc"].lat = 45.83267
     all_poi["zrh"].lat = 47.46218
@@ -191,6 +193,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cat"].lat = 46.0699
     all_poi["ruc"].lat = 47.01078
     all_poi["gos"].lat = 46.22
+    all_poi["mrp"].lat = 45.95664
 
     all_poi["mtblanc"].lon = 6.86437
     all_poi["zrh"].lon = 8.54458
@@ -206,6 +209,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cat"].lon = 7.1317
     all_poi["ruc"].lon = 9.00086
     all_poi["gos"].lon = 12.02
+    all_poi["mrp"].lon = 7.81434
 
     all_poi["mtblanc"].h_real = 4808.0
     all_poi["zrh"].h_real = 422.0
@@ -221,6 +225,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cat"].h_real = 1160.0
     all_poi["ruc"].h_real = 2855.0
     all_poi["gos"].h_real = 1700.0
+    all_poi["mrp"].h_real = 2884.0
 
     all_poi["mtblanc"].left_to_right = False
     all_poi["zrh"].left_to_right = None
@@ -236,6 +241,7 @@ def get_poi(loc, lats=None, lons=None, model="icon"):
     all_poi["cat"].left_to_right = False
     all_poi["ruc"].left_to_right = False
     all_poi["gos"].left_to_right = None
+    all_poi["mrp"].left_to_right = None
 
     if loc[0] == "all":
         poi = all_poi
